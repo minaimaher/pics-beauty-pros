@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, CATEGORY_LABEL, CATEGORY_PLURAL } from '../lib.jsx';
+import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, BASE, CATEGORY_LABEL, CATEGORY_PLURAL } from '../lib.jsx';
 import { VendorCard, Loading, ErrorNote, Empty } from '../components.jsx';
 
 const CATEGORY_ART = {
@@ -113,7 +113,7 @@ export function Search() {
     const id = setTimeout(() => {
       api('/search?' + p).then((d) => setState({ loading: false, ...d }), (error) => setState({ loading: false, error }));
       const visible = new URLSearchParams(Object.entries(filters).filter(([k, v]) => v && !(k === 'sort' && v === 'recommended') && !(k === 'radiusKm' && v === '50')));
-      history.replaceState(null, '', '/search' + (visible.size ? '?' + visible : ''));
+      history.replaceState(null, '', BASE + '/search' + (visible.size ? '?' + visible : ''));
     }, 200);
     return () => clearTimeout(id);
   }, [filters, market]);

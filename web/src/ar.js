@@ -513,5 +513,8 @@ export const AR = {
   'Paid': 'مدفوع',
   'Overdue': 'متأخر',
   'Due {d}': 'مستحق في {d}',
-  '+{n} more': '+{n} أخرى'
+  '+{n} more': '+{n} أخرى',
+  'Demo mode: the app runs entirely in your browser and your changes are saved on this device only.': 'وضع العرض: يعمل التطبيق بالكامل داخل متصفحك وتُحفظ تغييراتك على هذا الجهاز فقط.',
+  'Reset all demo data?': 'إعادة ضبط كل بيانات العرض؟',
+  'Reset demo data': 'إعادة ضبط بيانات العرض'
 };

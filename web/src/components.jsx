@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, Link, navigate, useApp, useT, useFormat, useLocation, CATEGORY_LABEL, COUNTRY_LABEL, METHOD_LABEL, STATUS_LABEL } from './lib.jsx';
+import { api, Link, navigate, useApp, useT, useFormat, useLocation, DEMO, CATEGORY_LABEL, COUNTRY_LABEL, METHOD_LABEL, STATUS_LABEL } from './lib.jsx';
 
 export function Logo() {
   return (
@@ -116,7 +116,15 @@ export function Footer() {
           <Logo />
           <p className="muted small">{t('Book vetted photographers, videographers, makeup artists and hair dressers in Egypt and Saudi Arabia.')}</p>
         </div>
-        <p className="muted small">{t('Proof of concept · payments run in sandbox mode, no real money moves.')}</p>
+        <div>
+          <p className="muted small">{t('Proof of concept · payments run in sandbox mode, no real money moves.')}</p>
+          {DEMO && (
+            <p className="muted small">
+              {t('Demo mode: the app runs entirely in your browser and your changes are saved on this device only.')}{' '}
+              <button className="btn-link small" onClick={async () => { if (confirm(t('Reset all demo data?'))) (await import('pbp-demo-backend')).resetDemo(); }}>{t('Reset demo data')}</button>
+            </p>
+          )}
+        </div>
       </div>
     </footer>
   );

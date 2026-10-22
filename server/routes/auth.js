@@ -51,7 +51,8 @@ r.post('/otp/request', (req, res) => {
       .run(user.email, `Your Pics Beauty Pros code is ${code}. It expires in 10 minutes.`, nowIso());
   }
   // Same response whether or not the account exists, so emails can't be enumerated.
-  res.json({ sent: true, ...(process.env.NODE_ENV !== 'production' && user ? { devCode: code } : {}) });
+  const showCode = process.env.NODE_ENV !== 'production' || process.env.PBP_DEMO === '1';
+  res.json({ sent: true, ...(showCode && user ? { devCode: code } : {}) });
 });
 
 r.post('/otp/verify', (req, res) => {

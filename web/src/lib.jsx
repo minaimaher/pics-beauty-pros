@@ -1,8 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore } from 'react';
+import { flushSync } from 'react-dom';
 import { AR } from './ar.js';
 
 // ---- API ----
+// The GitHub Pages build has no server: requests go to the in-browser backend instead.
+export const DEMO = import.meta.env.MODE === 'pages';
+export const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 export async function api(path, { method = 'GET', body, form } = {}) {
+  if (DEMO) {
+    const { request } = await import('pbp-demo-backend');
+    return request(method, path, { body, form });
+  }
   const res = await fetch('/api' + path, {
     method,
     credentials: 'same-origin',
@@ -42,15 +51,16 @@ const subscribe = (fn) => {
   return () => { listeners.delete(fn); window.removeEventListener('popstate', fn); };
 };
 export function navigate(to, { replace = false } = {}) {
-  if (replace) history.replaceState(null, '', to);
-  else history.pushState(null, '', to);
+  if (replace) history.replaceState(null, '', BASE + to);
+  else history.pushState(null, '', BASE + to);
   listeners.forEach((fn) => fn());
   window.scrollTo(0, 0);
 }
 export function useLocation() {
   const href = useSyncExternalStore(subscribe, () => location.pathname + location.search);
   const url = new URL(href, location.origin);
-  return { path: url.pathname, query: Object.fromEntries(url.searchParams) };
+  const path = url.pathname.startsWith(BASE) ? url.pathname.slice(BASE.length) || '/' : url.pathname;
+  return { path, query: Object.fromEntries(url.searchParams) };
 }
 export function matchRoute(pattern, path) {
   const p = pattern.split('/').filter(Boolean);
@@ -66,7 +76,7 @@ export function matchRoute(pattern, path) {
 export function Link({ to, children, className, onClick, ...rest }) {
   return (
     <a
-      href={to}
+      href={BASE + to}
       className={className}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -99,7 +109,8 @@ export function AppProvider({ children }) {
   const [market, setMarketState] = useState(read('pbp.market', 'EG'));
   const [toast, setToast] = useState(null);
 
-  const refreshSession = useCallback(() => api('/auth/me').then((d) => setSession({ user: d.user, vendor: d.vendor || null, ready: true })), []);
+  // Committed synchronously so a navigate() right after sign-in already sees the new user.
+  const refreshSession = useCallback(() => api('/auth/me').then((d) => flushSync(() => setSession({ user: d.user, vendor: d.vendor || null, ready: true }))), []);
   const refreshMeta = useCallback(() => api('/meta').then(setMeta), []);
   useEffect(() => { refreshSession(); refreshMeta(); }, [refreshSession, refreshMeta]);
 
