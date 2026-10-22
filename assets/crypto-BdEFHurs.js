@@ -1,0 +1,1 @@
+const o=t=>[...t].map(n=>n.toString(16).padStart(2,"0")).join("");function a(t){const n=crypto.getRandomValues(new Uint8Array(t));return{toString:()=>o(n)}}function e(t,n){const[r]=crypto.getRandomValues(new Uint32Array(1));return t+r%(n-t)}const c={randomBytes:a,randomInt:e};export{c};
