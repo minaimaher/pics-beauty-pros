@@ -8,7 +8,7 @@ import { files } from './shims/fs.js';
 const STORE = 'pbp-demo';
 const COOKIE_KEY = 'pbp.demo.session';
 // Bump when the seed data changes so returning visitors get the new demo data.
-const DATA_VERSION = 4;
+const DATA_VERSION = 5;
 
 function idb(mode, fn) {
   return new Promise((resolve, reject) => {

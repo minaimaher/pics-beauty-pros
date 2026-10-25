@@ -15,7 +15,7 @@ export const POOLS = {
   wedding: [
     [17057198, 'Through the viewfinder — first look'], [14355764, 'Golden hour under the bridge'], [13470038, 'Ballroom portraits'],
     [4942876, 'Desert session at sunset'], [18398510, 'Garden ceremony'], [32113385, 'Beach wedding'], [1358841, 'Bride in lace'],
-    [10673499, 'Veil silhouette'], [14819717, 'Bridal close-up'], [157860, 'Rose bouquet'], [4545107, 'Soft-focus veil portrait'],
+    [10673499, 'Veil silhouette'], [14819717, 'Bridal close-up'], [4545107, 'Soft-focus veil portrait'],
     [11055558, 'Groom getting ready'], [15663760, 'The groom'], [372176, 'Boutonniere detail'], [33492186, 'Hands at sunset'],
     [33337457, 'Golden-field engagement'], [13870508, 'Sunset silhouette']
   ],
@@ -29,7 +29,7 @@ export const POOLS = {
     [17022996, 'Floral venue'], [28976226, 'Outdoor reception']
   ],
   henna: [
-    [34245192, 'Bridal henna'], [6197905, 'Henna and bangles'], [18662849, 'Henna and jewellery'], [32029488, 'Henna detail'],
+    [34245192, 'Bridal henna'], [6197905, 'Henna and bangles'], [32029488, 'Henna detail'],
     [27164132, 'Couple henna'], [5467615, 'Henna-night look'], [1444441, 'Gold bangle and henna']
   ],
   makeupWork: [
@@ -149,7 +149,7 @@ export const AVATARS = {
   'goldenhour@pbp.test': 7129611,
   'corniche@pbp.test': 36298150,
   'danabridal@pbp.test': 7822688,
-  'redsea@pbp.test': 11661072,
+  'redsea@pbp.test': 5416859,
   'lulu@pbp.test': 34739077,
   'balad@pbp.test': 17715910, // Hassan — behind the camera
   'zamalek@pbp.test': 7930942,
@@ -169,7 +169,7 @@ export const SITE_PHOTOS = {
 };
 
 export const CITY_PHOTOS = {
-  Riyadh: 30320202,
+  Riyadh: 15839821,
   Jeddah: 29901876,
   Khobar: 19791633,
   Dammam: 19791633,
