@@ -1,6 +1,11 @@
 // Demo portfolio photos from Pexels (free to use under the Pexels license, hotlinked from
 // their CDN). Each entry is [Pexels photo id, caption].
-export const pexels = (id, w = 1200) => `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
+export const pexelsSource = (id, w = 1200) => `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
+
+// The GitHub Pages build downloads the photos at build time and serves them itself
+// (scripts/fetch-photos.js); elsewhere they are loaded from Pexels directly.
+const LOCAL_BASE = process.env.PBP_PHOTO_BASE;
+export const pexels = (id, w = 1200) => (LOCAL_BASE ? `${LOCAL_BASE}/${id}-${w > 1200 ? 'xl' : 'md'}.jpg` : pexelsSource(id, w));
 
 export const PORTFOLIOS = {
   'vendor@pbp.test': [
@@ -58,3 +63,5 @@ export const SITE_PHOTOS = {
   makeup: 20593111,
   hair: 3065170
 };
+
+export const ALL_PHOTO_IDS = [...new Set([...Object.values(PORTFOLIOS).flat().map(([id]) => id), ...Object.values(SITE_PHOTOS)])];

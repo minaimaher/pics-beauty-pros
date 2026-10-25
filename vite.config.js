@@ -18,9 +18,10 @@ export default defineConfig(({ mode }) => {
           'process.env.PBP_DATA_DIR': 'undefined',
           'process.env.PBP_DB': 'undefined',
           'process.env.PBP_JWT_SECRET': 'undefined',
-          'process.env.PBP_DEMO': '"1"'
+          'process.env.PBP_DEMO': '"1"',
+          'process.env.PBP_PHOTO_BASE': JSON.stringify((process.env.PAGES_BASE || '/pics-beauty-pros/') + 'photos')
         }
-      : {},
+      : { 'process.env.PBP_PHOTO_BASE': 'undefined' },
     resolve: {
       alias: pages
         ? {

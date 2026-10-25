@@ -7,6 +7,8 @@ import { files } from './shims/fs.js';
 
 const STORE = 'pbp-demo';
 const COOKIE_KEY = 'pbp.demo.session';
+// Bump when the seed data changes so returning visitors get the new demo data.
+const DATA_VERSION = 2;
 
 function idb(mode, fn) {
   return new Promise((resolve, reject) => {
@@ -33,6 +35,10 @@ async function boot() {
     saved = await idb('readonly', (s) => s.get('state'));
   } catch {
     saved = null;
+  }
+  if (saved && saved.version !== DATA_VERSION) {
+    saved = null;
+    try { localStorage.removeItem(COOKIE_KEY); } catch { /* ignore */ }
   }
   globalThis.__PBP_SQL = { SQL, bytes: saved?.db || null };
   if (saved) {
@@ -78,7 +84,7 @@ async function persist(force = false) {
   const changes = app.db.raw.exec('SELECT total_changes()')[0].values[0][0];
   if (!force && changes === lastSaved) return;
   // sql.js closes and reopens the database to export it, which resets connection pragmas and counters.
-  const state = { db: app.db.raw.export(), files: Object.fromEntries(files) };
+  const state = { version: DATA_VERSION, db: app.db.raw.export(), files: Object.fromEntries(files) };
   app.db.raw.exec('PRAGMA foreign_keys = ON');
   lastSaved = app.db.raw.exec('SELECT total_changes()')[0].values[0][0];
   try {
