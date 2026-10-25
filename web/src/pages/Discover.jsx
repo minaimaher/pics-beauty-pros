@@ -1,17 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, BASE, CATEGORY_LABEL, CATEGORY_PLURAL } from '../lib.jsx';
 import { VendorCard, Loading, ErrorNote, Empty } from '../components.jsx';
+import { SITE_PHOTOS, pexels } from '../../../server/photos.js';
 
-const CATEGORY_ART = {
-  photographer: 'M4 8h4l2-3h4l2 3h4v11H4z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
-  videographer: 'M3 7h12v10H3z M15 10l6-3v10l-6-3z',
-  makeup: 'M9 3h6v5H9z M8 8h8l-1 13H9z',
-  hair: 'M6 3v18 M10 3v18 M14 3v18 M18 3v18 M4 9h16'
-};
-
-function CategoryIcon({ c }) {
-  return <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" aria-hidden="true"><path d={CATEGORY_ART[c]} /></svg>;
-}
 
 export function Home() {
   const { market, meta } = useApp();
@@ -28,8 +19,10 @@ export function Home() {
   return (
     <>
       <section className="hero">
+        <img className="hero-photo" src={pexels(SITE_PHOTOS.hero, 1920)} alt="" />
         <div className="container hero-inner">
-          <h1>{t('Book the people who make your moments look unforgettable.')}</h1>
+          <p className="eyebrow hero-eyebrow">{t('Photography · Film · Makeup · Hair')}</p>
+          <h1>{t('Book the pros behind your moments.')}</h1>
           <p className="lead">{t('Compare verified photographers, videographers, makeup artists and hair dressers — real portfolios, clear prices, live availability.')}</p>
           <form className="hero-search" onSubmit={go}>
             <label>
@@ -59,9 +52,11 @@ export function Home() {
         <div className="cat-grid">
           {Object.keys(CATEGORY_LABEL).map((c) => (
             <Link key={c} to={`/search?category=${c}`} className="cat-tile">
-              <CategoryIcon c={c} />
-              <strong>{t(CATEGORY_PLURAL[c])}</strong>
-              <span className="muted small">{t('{n} vendors', { n: fmt.number(data?.categoryCounts?.[c] ?? 0) })}</span>
+              <img src={pexels(SITE_PHOTOS[c], 700)} alt="" loading="lazy" />
+              <span className="cat-label">
+                <strong>{t(CATEGORY_PLURAL[c])}</strong>
+                <span className="small">{t('{n} vendors', { n: fmt.number(data?.categoryCounts?.[c] ?? 0) })}</span>
+              </span>
             </Link>
           ))}
         </div>

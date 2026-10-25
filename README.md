@@ -10,6 +10,10 @@ Everything runs locally with real storage and business logic — only the paymen
 
 GitHub Pages only serves static files, so the Pages build bundles the real server routes and services into the page and runs them on SQLite compiled to WebAssembly (`vite build --mode pages`, see `web/src/demo/`). Each visitor gets their own demo data, saved in their browser; use **Reset demo data** in the footer to start over. Emailed one-time codes are shown on screen. The site is rebuilt from `main` by `.github/workflows/pages.yml`, or manually with `npm run build:pages` and pushing `web/dist-pages` to the `gh-pages` branch.
 
+## Brand
+
+Logo, colours, typography and voice are documented on the in-app **/brand** page; logo files, app icons and the social share image are in `web/public/brand/`. Fonts (Fraunces, Inter, IBM Plex Sans Arabic) are self-hosted via Fontsource. Demo portfolio photos are hotlinked from [Pexels](https://www.pexels.com/license/) (`server/photos.js`); a branded placeholder is shown if one fails to load.
+
 ## Run it
 
 Requires Node.js 20+.

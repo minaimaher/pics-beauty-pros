@@ -5,6 +5,7 @@ import { VendorProfile, Checkout } from './pages/Vendor.jsx';
 import { Login, Register, JoinVendor, CustomerBookings, BookingDetail, Messages } from './pages/Account.jsx';
 import { VendorApply, VendorDashboard } from './pages/VendorDashboard.jsx';
 import { Admin } from './pages/Admin.jsx';
+import { Brand } from './pages/Brand.jsx';
 
 const ROUTES = [
   ['/', () => <Home />],
@@ -14,6 +15,7 @@ const ROUTES = [
   ['/login', () => <Login />],
   ['/register', () => <Register />],
   ['/join-vendor', () => <JoinVendor />],
+  ['/brand', () => <Brand />],
   ['/bookings', () => <RequireRole role="customer"><CustomerBookings /></RequireRole>],
   ['/bookings/:id', (p) => <RequireRole role="customer"><BookingDetail id={p.id} /></RequireRole>],
   ['/messages', () => <RequireRole><Messages /></RequireRole>],

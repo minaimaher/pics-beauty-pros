@@ -516,5 +516,9 @@ export const AR = {
   '+{n} more': '+{n} أخرى',
   'Demo mode: the app runs entirely in your browser and your changes are saved on this device only.': 'وضع العرض: يعمل التطبيق بالكامل داخل متصفحك وتُحفظ تغييراتك على هذا الجهاز فقط.',
   'Reset all demo data?': 'إعادة ضبط كل بيانات العرض؟',
-  'Reset demo data': 'إعادة ضبط بيانات العرض'
+  'Reset demo data': 'إعادة ضبط بيانات العرض',
+  'Book the pros behind your moments.': 'احجز المحترفين خلف أجمل لحظاتك.',
+  'Photography · Film · Makeup · Hair': 'تصوير · فيديو · مكياج · شعر',
+  'Brand guidelines': 'دليل الهوية',
+  'Photos: Pexels': 'الصور: Pexels'
 };

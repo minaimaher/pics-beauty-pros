@@ -1,11 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, Link, navigate, useApp, useT, useFormat, useLocation, DEMO, CATEGORY_LABEL, COUNTRY_LABEL, METHOD_LABEL, STATUS_LABEL } from './lib.jsx';
 
+// Brand mark "aperture bloom": six petals arranged like aperture blades around a lens.
+const PETAL = 'M32 7.5c7.6 5.3 9.8 12.9 6.1 19.6L32 32l-6.1-4.9C22.2 20.4 24.4 12.8 32 7.5z';
+export function BrandMark({ size = 32, app = false, title }) {
+  return (
+    <svg viewBox={app ? '0 0 64 64' : '5 5 54 54'} width={size} height={size} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true} aria-label={title}>
+      <defs>
+        <linearGradient id="pbp-g0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F6D3C2" /><stop offset="1" stopColor="#D98E6E" /></linearGradient>
+        <linearGradient id="pbp-g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#EDBBA5" /><stop offset="1" stopColor="#B7613F" /></linearGradient>
+      </defs>
+      {app && <rect width="64" height="64" rx="16" fill="#1F1830" />}
+      {[0, 60, 120, 180, 240, 300].map((a, i) => <path key={a} d={PETAL} transform={`rotate(${a} 32 32)`} fill={`url(#pbp-g${i % 2})`} />)}
+      <circle cx="32" cy="32" r="5.6" fill="#1F1830" stroke="#F6D3C2" strokeWidth="1.8" />
+      <circle cx="33.7" cy="30.3" r="1.4" fill="#F6D3C2" />
+    </svg>
+  );
+}
+
+export function Wordmark() {
+  const { locale } = useApp();
+  return locale === 'ar' ? <span className="wordmark">بيكس بيوتي <b>برو</b></span> : <span className="wordmark">Pics Beauty <b>Pros</b></span>;
+}
+
 export function Logo() {
   return (
-    <Link to="/" className="logo" aria-label="Pics Beauty Pros home">
-      <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><rect width="64" height="64" rx="14" fill="currentColor" /><circle cx="32" cy="32" r="14" fill="none" stroke="var(--accent)" strokeWidth="5" /><circle cx="32" cy="32" r="5" fill="var(--accent)" /></svg>
-      <span>Pics Beauty <b>Pros</b></span>
+    <Link to="/" className="logo" aria-label="Pics Beauty Pros">
+      <BrandMark size={34} />
+      <Wordmark />
     </Link>
   );
 }
@@ -115,6 +137,7 @@ export function Footer() {
         <div>
           <Logo />
           <p className="muted small">{t('Book vetted photographers, videographers, makeup artists and hair dressers in Egypt and Saudi Arabia.')}</p>
+          <p className="small"><Link to="/brand">{t('Brand guidelines')}</Link> · <span className="muted">{t('Photos: Pexels')}</span></p>
         </div>
         <div>
           <p className="muted small">{t('Proof of concept · payments run in sandbox mode, no real money moves.')}</p>
@@ -173,7 +196,8 @@ export function VendorCard({ v }) {
   const fmt = useFormat();
   return (
     <Link to={`/vendors/${v.id}`} className="vendor-card">
-      <div className="vc-cover" style={v.cover ? { backgroundImage: `url(${v.cover})` } : undefined}>
+      <div className="vc-cover">
+        {v.cover && <img src={v.cover} alt="" loading="lazy" />}
         <TierBadge tier={v.tier} />
       </div>
       <div className="vc-body">

@@ -12,6 +12,7 @@ const { db, nowIso, today, addDays, UPLOAD_DIR, getSetting } = await import('./d
 const { cityCoords, CURRENCY } = await import('./geo.js');
 const { default: bcrypt } = await import('bcryptjs');
 const { recomputeRating } = await import('./services/bookings.js');
+const { PORTFOLIOS, pexels } = await import('./photos.js');
 
 const MEDIA = path.join(UPLOAD_DIR, 'media');
 const PRIVATE = path.join(UPLOAD_DIR, 'private');
@@ -21,8 +22,7 @@ fs.mkdirSync(PRIVATE, { recursive: true });
 const PASSWORD = bcrypt.hashSync('password123', 10);
 const t = today();
 
-// Placeholder portfolio art: layered gradient compositions so the demo looks like a gallery
-// without shipping real photos.
+// Abstract artwork used for the demo ID documents.
 const PALETTES = [
   ['#2b1a3d', '#c0587e', '#f7c59f'], ['#0f2a3f', '#3f88c5', '#f4d35e'], ['#3d1f1f', '#d1495b', '#edae49'],
   ['#1b3a2f', '#66a182', '#f2e8cf'], ['#2d2a32', '#8f6593', '#e7c8dd'], ['#14213d', '#fca311', '#e5e5e5'],
@@ -137,12 +137,8 @@ VENDORS.forEach((spec, i) => {
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
       .run(vid, category, title, desc, price, hours, mode, dep, due, JSON.stringify(STANDARD_REFUNDS.filter((r) => r.days_before >= due)), 0, nowIso());
   }
-  const captions = { photographer: 'Golden hour portraits', videographer: 'Film still', makeup: 'Bridal look', hair: 'Styled updo' };
-  for (let m = 0; m < 6; m++) {
-    const file = `seed-${i}-${m}.svg`;
-    fs.writeFileSync(path.join(MEDIA, file), art(i + m, m));
-    db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)')
-      .run(vid, 'image', '/uploads/media/' + file, captions[spec.cats[m % spec.cats.length]], nowIso());
+  for (const [photoId, caption] of PORTFOLIOS[spec.email]) {
+    db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)').run(vid, 'image', pexels(photoId), caption, nowIso());
   }
   db.prepare('INSERT INTO faqs (vendor_id, question, answer) VALUES (?,?,?)').run(vid, 'Do you travel to venues?', `Yes — anywhere in ${spec.city} and nearby cities. Travel outside the city is quoted separately.`);
   db.prepare('INSERT INTO faqs (vendor_id, question, answer) VALUES (?,?,?)').run(vid, 'How do I reserve my date?', 'Book through Pics Beauty Pros and pay the deposit; the balance is due before the event as shown at checkout.');
@@ -161,9 +157,8 @@ const pendingId = db.prepare(`INSERT INTO vendors (user_id, business_name, bio, 
   .run(pendingUid, 'Fresh Face by Aya', 'Makeup artist for engagements and graduations in Mansoura.', 'EG', 'Mansoura', ...cityCoords('EG', 'Mansoura'), 'EGP', 2,
     JSON.stringify(['natural', 'graduation']), 'seed-id-pending.svg', 'basic', 'trialing', addDays(t, 90), nowIso()).lastInsertRowid;
 db.prepare("INSERT INTO vendor_categories (vendor_id, category) VALUES (?, 'makeup')").run(pendingId);
-for (let m = 0; m < 3; m++) {
-  fs.writeFileSync(path.join(MEDIA, `seed-pending-${m}.svg`), art(4 + m, m));
-  db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)').run(pendingId, 'image', `/uploads/media/seed-pending-${m}.svg`, 'Portfolio sample', nowIso());
+for (const [photoId, caption] of PORTFOLIOS['fresh@pbp.test']) {
+  db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)').run(pendingId, 'image', pexels(photoId), caption, nowIso());
 }
 
 // Bookings in every state. Amounts follow the package terms exactly as the live flow would.
