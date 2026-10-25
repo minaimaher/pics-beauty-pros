@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, CATEGORY_LABEL } from '../lib.jsx';
-import { Loading, ErrorNote, Empty, StatusBadge, PaymentFields, Modal, StarInput, MonthCalendar } from '../components.jsx';
+import { Loading, ErrorNote, Empty, StatusBadge, PaymentFields, Modal, StarInput, MonthCalendar, Avatar } from '../components.jsx';
 import { PolicySummary } from './Vendor.jsx';
 
 function afterLogin(user, next) {
@@ -460,9 +460,12 @@ export function Messages({ threadId }) {
         <aside className="thread-list">
           {!data ? <Loading /> : data.threads.length === 0 ? <Empty>{t('No conversations yet. Message a vendor from their profile.')}</Empty> : data.threads.map((th) => (
             <Link key={th.id} to={`/messages/${th.id}`} className={'thread' + (String(th.id) === String(threadId) ? ' on' : '')}>
-              <strong>{other(th)}</strong>
-              {th.unread > 0 && <span className="dot inline">{th.unread}</span>}
-              <span className="muted small ellipsis">{th.last_body || t('No messages yet')}</span>
+              <Avatar src={user.role === 'vendor' ? null : th.vendor_avatar} name={other(th)} size={40} />
+              <span className="thread-text">
+                <strong>{other(th)}</strong>
+                {th.unread > 0 && <span className="dot inline">{th.unread}</span>}
+                <span className="muted small ellipsis">{th.last_body || t('No messages yet')}</span>
+              </span>
             </Link>
           ))}
         </aside>
@@ -473,6 +476,7 @@ export function Messages({ threadId }) {
             <>
               <div className="thread-head">
                 <Link to="/messages" className="back only-mobile">←</Link>
+                <Avatar src={user.role === 'vendor' ? null : thread.vendor.avatar_url} name={user.role === 'vendor' ? thread.customer.name : thread.vendor.business_name} size={36} />
                 <strong>{user.role === 'vendor' ? thread.customer.name : <Link to={`/vendors/${thread.vendor.id}`}>{thread.vendor.business_name}</Link>}</strong>
               </div>
               <div className="msgs">

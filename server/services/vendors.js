@@ -19,9 +19,12 @@ export function packageOut(p) {
 export function vendorSummary(v) {
   const cover = db.prepare("SELECT url FROM media WHERE vendor_id = ? AND status = 'visible' AND kind = 'image' ORDER BY id LIMIT 1").get(v.id);
   const minPrice = db.prepare('SELECT MIN(price) p FROM packages WHERE vendor_id = ? AND active = 1').get(v.id).p;
+  const owner = db.prepare('SELECT name FROM users WHERE id = ?').get(v.user_id);
   return {
     id: v.id,
     business_name: v.business_name,
+    avatar_url: v.avatar_url || null,
+    owner_first_name: owner?.name.split(' ')[0] || '',
     city: v.city,
     country: v.country,
     currency: v.currency,

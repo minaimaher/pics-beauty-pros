@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS vendors (
   id INTEGER PRIMARY KEY,
   user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
   business_name TEXT NOT NULL,
+  avatar_url TEXT,
   bio TEXT NOT NULL DEFAULT '',
   country TEXT NOT NULL CHECK (country IN ('EG','SA')),
   city TEXT NOT NULL,
@@ -235,6 +236,9 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL
 );
 `);
+
+// Columns added after the first release, for databases created before them.
+if (!db.prepare('PRAGMA table_info(vendors)').all().some((c) => c.name === 'avatar_url')) db.exec('ALTER TABLE vendors ADD COLUMN avatar_url TEXT');
 
 export const DEFAULT_SETTINGS = {
   tiers: {

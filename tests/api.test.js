@@ -278,3 +278,21 @@ test('messaging between customer and vendor', async () => {
   await outsider.login('customer@pbp.test');
   assert.equal((await outsider.get(`/messages/threads/${th.id}`)).status, 404);
 });
+
+test('vendors have profile photos and can replace them', async () => {
+  const anon = client();
+  const profile = (await anon.get(`/vendors/${vendorId('vendor@pbp.test')}`)).body;
+  assert.match(profile.avatar_url, /^https:\/\/images\.pexels\.com\//);
+  assert.equal(profile.owner_first_name, 'Hany');
+
+  const login = await fetch(base + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'vendor@pbp.test', password: 'password123' }) });
+  const cookie = login.headers.get('set-cookie').split(';')[0];
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==', 'base64');
+  const fd = new FormData();
+  fd.append('avatar', new Blob([png], { type: 'image/png' }), 'me.png');
+  const res = await fetch(base + '/vendor/avatar', { method: 'POST', headers: { Cookie: cookie }, body: fd });
+  assert.equal(res.status, 200);
+  const { avatar_url } = await res.json();
+  assert.match(avatar_url, /^\/uploads\/media\/.+\.png$/);
+  assert.equal((await anon.get(`/vendors/${vendorId('vendor@pbp.test')}`)).body.avatar_url, avatar_url);
+});

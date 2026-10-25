@@ -12,7 +12,7 @@ const { db, nowIso, today, addDays, UPLOAD_DIR, getSetting } = await import('./d
 const { cityCoords, CURRENCY } = await import('./geo.js');
 const { default: bcrypt } = await import('bcryptjs');
 const { recomputeRating } = await import('./services/bookings.js');
-const { PORTFOLIOS, pexels } = await import('./photos.js');
+const { PORTFOLIOS, AVATARS, pexels, avatar } = await import('./photos.js');
 
 const MEDIA = path.join(UPLOAD_DIR, 'media');
 const PRIVATE = path.join(UPLOAD_DIR, 'private');
@@ -131,6 +131,7 @@ VENDORS.forEach((spec, i) => {
       'bank', spec.country === 'EG' ? 'EG380019000500000000263180002' : 'SA0380000000608010167519', JSON.stringify(spec.country === 'SA' ? [0, 1, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6]),
       '10:00', spec.cats.includes('makeup') || spec.cats.includes('hair') ? '22:00' : '23:00', nowIso(), nowIso()).lastInsertRowid;
   vendorIds[spec.email] = vid;
+  db.prepare('UPDATE vendors SET avatar_url = ? WHERE id = ?').run(avatar(AVATARS[spec.email]), vid);
   for (const c of spec.cats) db.prepare('INSERT INTO vendor_categories (vendor_id, category) VALUES (?, ?)').run(vid, c);
   for (const [category, title, desc, price, hours, mode, dep, due] of spec.packages) {
     db.prepare(`INSERT INTO packages (vendor_id, category, title, description, price, duration_hours, booking_mode, deposit_pct, balance_due_days, refund_schedule, late_refund_pct, created_at)
@@ -157,6 +158,7 @@ const pendingId = db.prepare(`INSERT INTO vendors (user_id, business_name, bio, 
   .run(pendingUid, 'Fresh Face by Aya', 'Makeup artist for engagements and graduations in Mansoura.', 'EG', 'Mansoura', ...cityCoords('EG', 'Mansoura'), 'EGP', 2,
     JSON.stringify(['natural', 'graduation']), 'seed-id-pending.svg', 'basic', 'trialing', addDays(t, 90), nowIso()).lastInsertRowid;
 db.prepare("INSERT INTO vendor_categories (vendor_id, category) VALUES (?, 'makeup')").run(pendingId);
+db.prepare('UPDATE vendors SET avatar_url = ? WHERE id = ?').run(avatar(AVATARS['fresh@pbp.test']), pendingId);
 for (const [photoId, caption] of PORTFOLIOS['fresh@pbp.test']) {
   db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)').run(pendingId, 'image', pexels(photoId), caption, nowIso());
 }

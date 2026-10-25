@@ -7,6 +7,26 @@ export const pexelsSource = (id, w = 1200) => `https://images.pexels.com/photos/
 const LOCAL_BASE = process.env.PBP_PHOTO_BASE;
 export const pexels = (id, w = 1200) => (LOCAL_BASE ? `${LOCAL_BASE}/${id}-${w > 1200 ? 'xl' : 'md'}.jpg` : pexelsSource(id, w));
 
+// Square, face-centred crop for profile photos.
+export const avatarSource = (id) => `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=400&h=400`;
+export const avatar = (id) => (LOCAL_BASE ? `${LOCAL_BASE}/${id}-sq.jpg` : avatarSource(id));
+
+// Profile photos of the people behind each demo business.
+export const AVATARS = {
+  'vendor@pbp.test': 14408918, // Hany — photographer holding a camera
+  'nour@pbp.test': 8526806,
+  'sara@pbp.test': 14269450,
+  'alex@pbp.test': 1215443, // Youssef — with his DSLR
+  'reel@pbp.test': 8241351,
+  'mariam@pbp.test': 15520551,
+  'vendor-sa@pbp.test': 19999995,
+  'riyadhlens@pbp.test': 33853481,
+  'dune@pbp.test': 5416864,
+  'coastal@pbp.test': 36169798,
+  'hala@pbp.test': 16865236,
+  'fresh@pbp.test': 8070478
+};
+
 export const PORTFOLIOS = {
   'vendor@pbp.test': [
     [17057198, 'Through the viewfinder — first look'], [14355764, 'Golden hour under the bridge'], [13470038, 'Ballroom portraits'],
@@ -65,3 +85,4 @@ export const SITE_PHOTOS = {
 };
 
 export const ALL_PHOTO_IDS = [...new Set([...Object.values(PORTFOLIOS).flat().map(([id]) => id), ...Object.values(SITE_PHOTOS)])];
+export const AVATAR_IDS = [...new Set(Object.values(AVATARS))];

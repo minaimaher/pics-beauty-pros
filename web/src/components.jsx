@@ -18,6 +18,16 @@ export function BrandMark({ size = 32, app = false, title }) {
   );
 }
 
+// Round profile photo; shows initials if there is no photo or it fails to load.
+export function Avatar({ src, name = '', size = 40, className = '' }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+  const style = { width: size, height: size, fontSize: Math.round(size * 0.38) };
+  return src && !failed
+    ? <img className={'avatar ' + className} style={style} src={src} alt={name} loading="lazy" data-fallback="1" onError={() => setFailed(true)} />
+    : <span className={'avatar avatar-initials ' + className} style={style} aria-label={name}>{initials}</span>;
+}
+
 export function Wordmark() {
   const { locale } = useApp();
   return locale === 'ar' ? <span className="wordmark">بيكس بيوتي <b>برو</b></span> : <span className="wordmark">Pics Beauty <b>Pros</b></span>;
@@ -200,6 +210,7 @@ export function VendorCard({ v }) {
         {v.cover && <img src={v.cover} alt="" loading="lazy" />}
         <TierBadge tier={v.tier} />
       </div>
+      <Avatar src={v.avatar_url} name={v.owner_first_name || v.business_name} size={52} className="vc-avatar" />
       <div className="vc-body">
         <div className="vc-top">
           <h3>{v.business_name}</h3>

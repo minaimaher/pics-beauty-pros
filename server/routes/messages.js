@@ -16,7 +16,7 @@ function threadFor(req, id) {
 
 r.get('/threads', (req, res) => {
   const asVendor = req.user.role === 'vendor' && req.vendor;
-  const rows = db.prepare(`SELECT th.*, v.business_name, u.name customer_name,
+  const rows = db.prepare(`SELECT th.*, v.business_name, v.avatar_url vendor_avatar, u.name customer_name,
       (SELECT body FROM messages WHERE thread_id = th.id ORDER BY id DESC LIMIT 1) last_body,
       (SELECT COUNT(*) FROM messages WHERE thread_id = th.id AND sender_id != ? AND read_at IS NULL) unread
     FROM threads th JOIN vendors v ON v.id = th.vendor_id JOIN users u ON u.id = th.customer_id
@@ -36,7 +36,7 @@ r.post('/threads', requireAuth('customer'), (req, res) => {
 r.get('/threads/:id', (req, res) => {
   const th = threadFor(req, req.params.id);
   db.prepare('UPDATE messages SET read_at = ? WHERE thread_id = ? AND sender_id != ? AND read_at IS NULL').run(nowIso(), th.id, req.user.id);
-  const v = db.prepare('SELECT id, business_name FROM vendors WHERE id = ?').get(th.vendor_id);
+  const v = db.prepare('SELECT id, business_name, avatar_url FROM vendors WHERE id = ?').get(th.vendor_id);
   const c = db.prepare('SELECT id, name FROM users WHERE id = ?').get(th.customer_id);
   const bookings = db.prepare("SELECT id, code, event_date, status FROM bookings WHERE customer_id = ? AND vendor_id = ? ORDER BY event_date DESC").all(c.id, v.id);
   const messages = db.prepare(`SELECT m.id, m.sender_id, m.body, m.booking_id, m.created_at, m.read_at, b.code booking_code FROM messages m

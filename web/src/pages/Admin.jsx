@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, Link, CATEGORY_LABEL, COUNTRY_LABEL, TIER_LABEL } from '../lib.jsx';
-import { Loading, ErrorNote, Empty, Tabs, Modal, Stars, StatusBadge } from '../components.jsx';
+import { Loading, ErrorNote, Empty, Tabs, Modal, Stars, StatusBadge, Avatar } from '../components.jsx';
 
 function Kpi({ label, value, sub }) {
   return <div className="stat"><span>{label}</span><strong>{value}</strong>{sub && <small>{sub}</small>}</div>;
@@ -151,7 +151,7 @@ function Vendors() {
             <tbody>
               {data.vendors.map((v) => (
                 <tr key={v.id}>
-                  <td><strong>{v.business_name}</strong><br /><span className="muted small">{v.email}</span></td>
+                  <td><span className="who"><Avatar src={v.avatar_url} name={v.owner_name} size={36} /><span><strong>{v.business_name}</strong><br /><span className="muted small">{v.email}</span></span></span></td>
                   <td className="small">{v.categories.map((c) => t(CATEGORY_LABEL[c])).join(', ')}</td>
                   <td className="small">{t(v.city)}</td>
                   <td className="small">{t(TIER_LABEL[v.tier_selected])} · {t(v.subscription_status)}</td>

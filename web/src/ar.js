@@ -520,5 +520,10 @@ export const AR = {
   'Book the pros behind your moments.': 'احجز المحترفين خلف أجمل لحظاتك.',
   'Photography · Film · Makeup · Hair': 'تصوير · فيديو · مكياج · شعر',
   'Brand guidelines': 'دليل الهوية',
-  'Photos: Pexels': 'الصور: Pexels'
+  'Photos: Pexels': 'الصور: Pexels',
+  'Run by {name}': 'يديره {name}',
+  'Your profile photo': 'صورتك الشخصية',
+  'A friendly photo of you helps customers trust who they are booking.': 'صورة ودودة لك تساعد العملاء على الثقة بمن يحجزون معه.',
+  'Change photo': 'تغيير الصورة',
+  'Profile photo updated': 'تم تحديث الصورة الشخصية'
 };

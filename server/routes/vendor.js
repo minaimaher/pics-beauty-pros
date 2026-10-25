@@ -182,6 +182,19 @@ r.post('/media', mediaUpload.array('files', 20), (req, res) => {
   res.status(201).json({ media: vendorProfile(v, { includeHidden: true }).media });
 });
 
+// Profile photo of the person behind the business, shown on cards and the profile header.
+r.post('/avatar', mediaUpload.single('avatar'), (req, res) => {
+  const v = vendorOrThrow(req);
+  if (!req.file || !req.file.mimetype.startsWith('image/')) {
+    if (req.file) fs.rmSync(req.file.path, { force: true });
+    throw new ValidationError('Choose a JPG, PNG or WebP photo');
+  }
+  if (v.avatar_url?.startsWith('/uploads/media/')) fs.rmSync(path.join(PUBLIC_DIR, path.basename(v.avatar_url)), { force: true });
+  const url = '/uploads/media/' + req.file.filename;
+  db.prepare('UPDATE vendors SET avatar_url = ? WHERE id = ?').run(url, v.id);
+  res.json({ avatar_url: url });
+});
+
 r.patch('/media/:id', (req, res) => {
   const v = vendorOrThrow(req);
   db.prepare('UPDATE media SET caption = ? WHERE id = ? AND vendor_id = ?').run(String(req.body?.caption || ''), req.params.id, v.id);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, CATEGORY_LABEL } from '../lib.jsx';
-import { Stars, TierBadge, Loading, ErrorNote, MonthCalendar, PaymentFields, Empty } from '../components.jsx';
+import { Stars, TierBadge, Loading, ErrorNote, MonthCalendar, PaymentFields, Empty, Avatar } from '../components.jsx';
 
 export function addDays(date, n) {
   const d = new Date(date + 'T00:00:00Z');
@@ -90,13 +90,17 @@ export function VendorProfile({ id }) {
     <div className="profile">
       <div className="container">
         <div className="profile-head">
-          <div>
+          <div className="profile-id">
+            <Avatar src={v.avatar_url} name={v.owner_first_name || v.business_name} size={88} />
+            <div>
             <p className="eyebrow">{v.categories.map((c) => t(CATEGORY_LABEL[c])).join(' · ')}</p>
             <h1>{v.business_name} <TierBadge tier={v.tier} /></h1>
             <p className="muted">
               {t(v.city)} · <Stars value={v.rating_avg} count={v.rating_count} /> · {t('{n} years experience', { n: v.experience_years })}
               <span className="badge badge-verified">✓ {t('Verified vendor')}</span>
             </p>
+            {v.owner_first_name && <p className="small owner-line">{t('Run by {name}', { name: v.owner_first_name })}</p>}
+            </div>
           </div>
           <div className="head-actions">
             <button className="btn btn-ghost" onClick={message}>{t('Message')}</button>

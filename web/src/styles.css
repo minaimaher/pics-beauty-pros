@@ -462,3 +462,17 @@ td.end { flex-direction: row; justify-content: flex-end; align-items: center; ga
 .photo-strip img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; }
 @media (max-width: 640px) { .photo-strip { grid-template-columns: repeat(2, 1fr); } }
 .downloads { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* Profile photos */
+.avatar { display: inline-grid; place-items: center; flex: none; border-radius: 50%; object-fit: cover; background: #efe7e1; }
+.avatar-initials { background: linear-gradient(135deg, var(--plum), var(--accent-strong)); color: #fff; font-weight: 600; font-family: var(--font); }
+.vendor-card .vc-avatar { position: relative; margin: -30px 0 -6px; margin-inline-start: 14px; z-index: 1; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(31, 24, 48, .2); }
+.profile-id { display: flex; align-items: center; gap: 18px; }
+.profile-id .avatar { border: 3px solid #fff; box-shadow: var(--shadow); }
+.owner-line { margin: 4px 0 0; color: var(--ink-2); }
+.thread { display: flex; gap: 10px; align-items: center; }
+.thread-text { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; min-width: 0; flex: 1; }
+.thread-text .ellipsis { grid-column: 1 / -1; }
+.who { display: flex; gap: 10px; align-items: center; }
+.photo-row { display: flex; gap: 16px; align-items: center; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.photo-row p { margin: 2px 0 8px; }

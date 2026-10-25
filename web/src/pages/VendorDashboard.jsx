@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, Link, CATEGORY_LABEL } from '../lib.jsx';
-import { Loading, ErrorNote, Empty, Tabs, PaymentFields, Modal, MonthCalendar, Stars } from '../components.jsx';
+import { Loading, ErrorNote, Empty, Tabs, PaymentFields, Modal, MonthCalendar, Stars, Avatar } from '../components.jsx';
 import { BookingsList, BookingDetail } from './Account.jsx';
 
 function CategoryChecks({ value, onChange }) {
@@ -22,6 +22,7 @@ export function VendorApply() {
   const { meta, market, refreshSession, vendor } = useApp();
   const [form, setForm] = useState({ business_name: '', country: market, city: '', bio: '', experience_years: '', certifications: '', style_tags: '', categories: [] });
   const [idDoc, setIdDoc] = useState(null);
+  const [photo, setPhoto] = useState(null);
   const [files, setFiles] = useState([]);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -38,6 +39,11 @@ export function VendorApply() {
       for (const [k, v] of Object.entries(form)) fd.append(k, Array.isArray(v) ? v.join(',') : v);
       if (idDoc) fd.append('id_document', idDoc);
       await api('/vendor/apply', { method: 'POST', form: fd });
+      if (photo) {
+        const pd = new FormData();
+        pd.append('avatar', photo);
+        await api('/vendor/avatar', { method: 'POST', form: pd });
+      }
       if (files.length) {
         const md = new FormData();
         files.forEach((f) => md.append('files', f));
@@ -83,6 +89,10 @@ export function VendorApply() {
         <label className="field">{t('ID document (national ID, passport or commercial registration)')}
           <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(e) => setIdDoc(e.target.files[0])} required />
           <span className="small muted">{t('Only visible to our verification team.')}</span>
+        </label>
+        <label className="field">{t('Your profile photo')}
+          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhoto(e.target.files[0])} />
+          <span className="small muted">{t('A friendly photo of you helps customers trust who they are booking.')}</span>
         </label>
         <label className="field">{t('Portfolio samples')}
           <input type="file" multiple accept="image/*,video/mp4,video/webm,video/quicktime" onChange={(e) => setFiles([...e.target.files])} />
@@ -158,6 +168,18 @@ function ProfileTab({ profile, reload }) {
   const [faqs, setFaqs] = useState(profile.faqs.length ? profile.faqs : [{ question: '', answer: '' }]);
   const [err, setErr] = useState(null);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const uploadPhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setErr(null);
+    try {
+      const fd = new FormData();
+      fd.append('avatar', file);
+      await api('/vendor/avatar', { method: 'POST', form: fd });
+      notify(t('Profile photo updated'));
+      reload();
+    } catch (e2) { setErr(e2); }
+  };
   const save = async (e) => {
     e.preventDefault();
     setErr(null);
@@ -170,6 +192,14 @@ function ProfileTab({ profile, reload }) {
   };
   return (
     <form className="card form" onSubmit={save}>
+      <div className="photo-row">
+        <Avatar src={profile.avatar_url} name={profile.owner_first_name || profile.business_name} size={80} />
+        <div>
+          <strong>{t('Your profile photo')}</strong>
+          <p className="small muted">{t('A friendly photo of you helps customers trust who they are booking.')}</p>
+          <label className="btn btn-ghost btn-small">{t('Change photo')}<input type="file" hidden accept="image/jpeg,image/png,image/webp" onChange={uploadPhoto} /></label>
+        </div>
+      </div>
       <label className="field">{t('Business name')}<input value={form.business_name} onChange={set('business_name')} /></label>
       <div className="field"><span>{t('Services you offer')}</span><CategoryChecks value={form.categories} onChange={(c) => setForm({ ...form, categories: c })} /></div>
       <div className="row-2">
@@ -584,9 +614,12 @@ export function VendorDashboard({ section, sub }) {
   return (
     <div className="container section dash">
       <div className="dash-head">
-        <div>
-          <p className="eyebrow">{t('Vendor dashboard')}</p>
-          <h1>{profile.business_name}</h1>
+        <div className="profile-id">
+          <Avatar src={profile.avatar_url} name={profile.owner_first_name || profile.business_name} size={64} />
+          <div>
+            <p className="eyebrow">{t('Vendor dashboard')}</p>
+            <h1>{profile.business_name}</h1>
+          </div>
         </div>
         <div className="head-actions">
           <span className={'badge ' + ({ approved: 'status-confirmed', pending: 'status-requested' }[profile.status] || 'status-cancelled')}>{t({ approved: 'Live', pending: 'Pending review' }[profile.status] || profile.status)}</span>
