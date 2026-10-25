@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, CATEGORY_LABEL } from '../lib.jsx';
 import { Stars, TierBadge, Loading, ErrorNote, MonthCalendar, PaymentFields, Empty, Avatar } from '../components.jsx';
+import { MapView } from '../MapView.jsx';
 
 export function addDays(date, n) {
   const d = new Date(date + 'T00:00:00Z');
@@ -55,6 +56,12 @@ function Gallery({ media }) {
   );
 }
 
+function VendorAreaMap({ v }) {
+  const center = useMemo(() => [v.lat, v.lng], [v.lat, v.lng]);
+  const markers = useMemo(() => [{ id: v.id, lat: v.lat, lng: v.lng, avatar: v.avatar_url, initials: (v.owner_first_name || v.business_name)[0] }], [v]);
+  return <MapView height={300} fit={false} zoom={10} center={center} circleKm={v.service_radius_km} markers={markers} />;
+}
+
 export function VendorProfile({ id }) {
   const { user, notify, meta } = useApp();
   const t = useT();
@@ -96,7 +103,7 @@ export function VendorProfile({ id }) {
             <p className="eyebrow">{v.categories.map((c) => t(CATEGORY_LABEL[c])).join(' · ')}</p>
             <h1>{v.business_name} <TierBadge tier={v.tier} /></h1>
             <p className="muted">
-              {t(v.city)} · <Stars value={v.rating_avg} count={v.rating_count} /> · {t('{n} years experience', { n: v.experience_years })}
+              {v.district ? `${t(v.district)}, ` : ''}{t(v.city)} · <Stars value={v.rating_avg} count={v.rating_count} /> · {t('{n} years experience', { n: v.experience_years })}
               <span className="badge badge-verified">✓ {t('Verified vendor')}</span>
             </p>
             {v.owner_first_name && <p className="small owner-line">{t('Run by {name}', { name: v.owner_first_name })}</p>}
@@ -152,6 +159,18 @@ export function VendorProfile({ id }) {
                 ))}
               </div>
             </section>
+
+            {v.lat != null && (
+              <section className="section-sm">
+                <h2>{t('Location')}</h2>
+                <p className="muted">
+                  {t('Based in {place}', { place: [v.district && t(v.district), t(v.city)].filter(Boolean).join(', ') })}
+                  {v.service_radius_km > 0 && ` · ${t('Travels up to {km} km', { km: v.service_radius_km })}`}
+                </p>
+                <VendorAreaMap v={v} />
+                <p className="small muted">{t('The pin shows the vendor\'s area, not an exact address.')}</p>
+              </section>
+            )}
 
             {v.faqs.length > 0 && (
               <section className="section-sm">

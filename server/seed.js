@@ -9,10 +9,10 @@ for (const f of [DB_FILE, DB_FILE + '-wal', DB_FILE + '-shm']) fs.rmSync(f, { fo
 fs.rmSync(path.join(DATA_DIR, 'uploads'), { recursive: true, force: true });
 
 const { db, nowIso, today, addDays, UPLOAD_DIR, getSetting } = await import('./db.js');
-const { cityCoords, CURRENCY } = await import('./geo.js');
+const { cityCoords, districtCoords, CURRENCY } = await import('./geo.js');
 const { default: bcrypt } = await import('bcryptjs');
 const { recomputeRating } = await import('./services/bookings.js');
-const { PORTFOLIOS, AVATARS, pexels, avatar } = await import('./photos.js');
+const { portfolioFor, AVATARS, pexels, avatar } = await import('./photos.js');
 
 const MEDIA = path.join(UPLOAD_DIR, 'media');
 const PRIVATE = path.join(UPLOAD_DIR, 'private');
@@ -56,7 +56,7 @@ const extraCustomers = {
 const STANDARD_REFUNDS = [{ days_before: 60, pct: 100 }, { days_before: 30, pct: 50 }, { days_before: 14, pct: 25 }];
 
 const VENDORS = [
-  { email: 'vendor@pbp.test', owner: 'Hany Mostafa', name: 'Lumière Studio', country: 'EG', city: 'Cairo', cats: ['photographer', 'videographer'], tier: 'featured', featured: true, years: 9,
+  { email: 'vendor@pbp.test', district: 'Garden City', owner: 'Hany Mostafa', name: 'Lumière Studio', country: 'EG', city: 'Cairo', cats: ['photographer', 'videographer'], tier: 'featured', featured: true, years: 9,
     tags: ['wedding', 'editorial', 'cinematic', 'outdoor'], bio: 'Award-winning wedding and engagement team in Cairo. We shoot natural, cinematic stories and deliver edited galleries within three weeks.',
     certs: 'Canon Professional Services member; Wedding Photojournalist Association 2024 award',
     packages: [
@@ -64,62 +64,157 @@ const VENDORS = [
       ['photographer', 'Engagement Session', 'Two-hour outdoor session at a location of your choice, 80 edited photos.', 6500, 2, 'instant', 25, 7],
       ['videographer', 'Cinematic Wedding Film', 'Full-day coverage, 5-minute highlight film, and full ceremony edit in 4K.', 38000, 10, 'request', 30, 14]
     ] },
-  { email: 'nour@pbp.test', owner: 'Nour El-Sayed', name: 'Nour Glam', country: 'EG', city: 'New Cairo', cats: ['makeup', 'hair'], tier: 'pro', years: 6,
+  { email: 'nour@pbp.test', district: 'Fifth Settlement', owner: 'Nour El-Sayed', name: 'Nour Glam', country: 'EG', city: 'New Cairo', cats: ['makeup', 'hair'], tier: 'pro', years: 6,
     tags: ['bridal', 'soft glam', 'natural'], bio: 'Bridal makeup and hair styling with long-wear products. I travel to your venue anywhere in Greater Cairo.',
     certs: 'MAC Pro certified', packages: [
       ['makeup', 'Bridal Makeup', 'Trial session plus wedding-day makeup with lashes and touch-up kit.', 9000, 3, 'request', 30, 7],
       ['hair', 'Bridal Hair Styling', 'Updo or soft waves, veil fitting and touch-ups.', 6000, 2, 'instant', 25, 7],
       ['makeup', 'Evening Soft Glam', 'Party or engagement makeup, 90 minutes.', 2500, 1.5, 'instant', 20, 7]
     ] },
-  { email: 'sara@pbp.test', owner: 'Sara Ibrahim', name: 'Sara Hair Lab', country: 'EG', city: 'Giza', cats: ['hair'], tier: 'basic', years: 4,
+  { email: 'sara@pbp.test', district: 'Dokki', owner: 'Sara Ibrahim', name: 'Sara Hair Lab', country: 'EG', city: 'Giza', cats: ['hair'], tier: 'basic', years: 4,
     tags: ['braids', 'curly hair', 'natural'], bio: 'Curly-hair specialist and event styling. Home visits in Giza and Sheikh Zayed.', certs: '',
     packages: [['hair', 'Event Hair Styling', 'Blowout, curls or braids for any event.', 1800, 1.5, 'instant', 20, 7]] },
-  { email: 'alex@pbp.test', owner: 'Youssef Nabil', name: 'Alex Frames', country: 'EG', city: 'Alexandria', cats: ['photographer'], tier: 'pro', years: 7,
+  { email: 'alex@pbp.test', district: 'Smouha', owner: 'Youssef Nabil', name: 'Alex Frames', country: 'EG', city: 'Alexandria', cats: ['photographer'], tier: 'pro', years: 7,
     tags: ['maternity', 'newborn', 'family', 'beach'], bio: 'Maternity, newborn and family photography by the sea. Calm, safe newborn posing in our Smouha studio.',
     certs: 'Newborn safety certified', packages: [
       ['photographer', 'Maternity Beach Session', 'Sunset shoot on the Alexandria coast, gowns included.', 4500, 2, 'instant', 25, 7],
       ['photographer', 'Newborn Studio Session', 'Up to 4 hours at our studio with props and wraps.', 5200, 4, 'request', 30, 7]
     ] },
-  { email: 'reel@pbp.test', owner: 'Mostafa Gamal', name: 'Reel Moments', country: 'EG', city: 'Sheikh Zayed', cats: ['videographer'], tier: 'basic', years: 3,
+  { email: 'reel@pbp.test', district: 'Beverly Hills', owner: 'Mostafa Gamal', name: 'Reel Moments', country: 'EG', city: 'Sheikh Zayed', cats: ['videographer'], tier: 'basic', years: 3,
     tags: ['corporate', 'events', 'drone'], bio: 'Corporate event and conference videography with drone coverage.', certs: 'Licensed drone operator',
     packages: [['videographer', 'Corporate Event Coverage', 'Half-day filming and a 3-minute recap video.', 12000, 5, 'request', 30, 7]] },
-  { email: 'mariam@pbp.test', owner: 'Mariam Adel', name: 'Mariam Beauty', country: 'EG', city: 'Cairo', cats: ['makeup'], tier: 'featured', featured: true, years: 11,
+  { email: 'mariam@pbp.test', district: 'Downtown', owner: 'Mariam Adel', name: 'Mariam Beauty', country: 'EG', city: 'Cairo', cats: ['makeup'], tier: 'featured', featured: true, years: 11,
     tags: ['bridal', 'editorial', 'full glam'], bio: 'Celebrity and editorial makeup artist. Bridal bookings fill up fast for the summer season.',
     certs: 'Make Up For Ever Academy Paris', packages: [
       ['makeup', 'Signature Bridal Glam', 'Trial, wedding-day full glam, and a second look for the reception.', 15000, 4, 'request', 40, 21],
       ['makeup', 'Photoshoot Makeup', 'Editorial or portrait-session makeup.', 3500, 1.5, 'instant', 25, 7]
     ] },
-  { email: 'vendor-sa@pbp.test', owner: 'Lama Al-Ghamdi', name: 'Layali Bridal', country: 'SA', city: 'Jeddah', cats: ['makeup', 'hair'], tier: 'pro', years: 8,
+  { email: 'vendor-sa@pbp.test', district: 'Al Zahra', owner: 'Lama Al-Ghamdi', name: 'Layali Bridal', country: 'SA', city: 'Jeddah', cats: ['makeup', 'hair'], tier: 'pro', years: 8,
     tags: ['bridal', 'henna night', 'soft glam'], bio: 'Bridal makeup and hair for weddings and henna nights in Jeddah. Women-only team.',
     certs: 'Huda Beauty Academy', packages: [
       ['makeup', 'Bridal Makeup & Lashes', 'Trial plus wedding-night makeup.', 3500, 3, 'request', 30, 14],
       ['hair', 'Bridal Hair & Veil', 'Hair styling with veil and accessory fitting.', 2200, 2, 'instant', 25, 7],
       ['makeup', 'Guest Makeup', 'Soft glam for guests and family.', 650, 1, 'instant', 20, 7]
     ] },
-  { email: 'riyadhlens@pbp.test', owner: 'Abdullah Al-Saud', name: 'Riyadh Lens Co.', country: 'SA', city: 'Riyadh', cats: ['photographer'], tier: 'featured', featured: true, years: 10,
+  { email: 'riyadhlens@pbp.test', district: 'Al Olaya', owner: 'Abdullah Al-Saud', name: 'Riyadh Lens Co.', country: 'SA', city: 'Riyadh', cats: ['photographer'], tier: 'featured', featured: true, years: 10,
     tags: ['wedding', 'corporate', 'portrait'], bio: 'Wedding, portrait and corporate photography across Riyadh with female photographers available on request.',
     certs: 'Saudi Photography Society member', packages: [
       ['photographer', 'Wedding Night Coverage', 'Six hours with two photographers and a printed album.', 9500, 6, 'request', 30, 14],
       ['photographer', 'Professional Headshots', 'Studio headshots for teams or individuals.', 900, 1, 'instant', 20, 7]
     ] },
-  { email: 'dune@pbp.test', owner: 'Turki Al-Mutairi', name: 'Dune Films', country: 'SA', city: 'Riyadh', cats: ['videographer', 'photographer'], tier: 'pro', years: 5,
+  { email: 'dune@pbp.test', district: 'Al Nakheel', owner: 'Turki Al-Mutairi', name: 'Dune Films', country: 'SA', city: 'Riyadh', cats: ['videographer', 'photographer'], tier: 'pro', years: 5,
     tags: ['cinematic', 'desert', 'drone', 'engagement'], bio: 'Cinematic films and photos in the desert and across Riyadh. Drone and gimbal included.',
     certs: 'GACA drone licence', packages: [
       ['videographer', 'Engagement Film', 'Half-day desert shoot, 3-minute film.', 4800, 4, 'instant', 30, 7],
       ['photographer', 'Desert Portrait Session', 'Golden-hour portrait session.', 1500, 2, 'instant', 25, 7]
     ] },
-  { email: 'coastal@pbp.test', owner: 'Noura Al-Dossary', name: 'Coastal Glam', country: 'SA', city: 'Khobar', cats: ['makeup'], tier: 'basic', years: 3,
+  { email: 'coastal@pbp.test', district: 'Al Corniche', owner: 'Noura Al-Dossary', name: 'Coastal Glam', country: 'SA', city: 'Khobar', cats: ['makeup'], tier: 'basic', years: 3,
     tags: ['natural', 'soft glam'], bio: 'Fresh, natural makeup for graduations and events in Khobar and Dammam.', certs: '',
     packages: [['makeup', 'Graduation Makeup', 'Long-wear natural look.', 450, 1, 'instant', 20, 7]] },
-  { email: 'hala@pbp.test', owner: 'Hala Al-Zahrani', name: 'Hala Hair Studio', country: 'SA', city: 'Dammam', cats: ['hair'], tier: 'basic', years: 6,
+  { email: 'hala@pbp.test', district: 'Al Faisaliyah', owner: 'Hala Al-Zahrani', name: 'Hala Hair Studio', country: 'SA', city: 'Dammam', cats: ['hair'], tier: 'basic', years: 6,
     tags: ['blowout', 'bridal', 'braids'], bio: 'Hair studio and home visits in Dammam.', certs: '',
-    packages: [['hair', 'Event Blowout & Styling', 'Blowout with curls or sleek finish.', 380, 1, 'instant', 20, 7]] }
+    packages: [['hair', 'Event Blowout & Styling', 'Blowout with curls or sleek finish.', 380, 1, 'instant', 20, 7]] },
+  // Riyadh
+  { email: 'noor@pbp.test', district: 'Al Malqa', owner: 'Noor Al-Harbi', name: 'Noor Al Riyadh Studio', country: 'SA', city: 'Riyadh', cats: ['photographer'], tier: 'featured', featured: true, years: 8,
+    tags: ['bridal', 'women-only', 'wedding', 'family'], bio: 'All-female photography team for weddings, henna nights and family events across Riyadh. Discreet coverage in women-only halls.',
+    certs: 'Saudi Photography Society member', packages: [
+      ['photographer', 'Wedding Night — Women\'s Hall', 'Six hours, two female photographers, 500+ edited photos and an album.', 8500, 6, 'request', 30, 14],
+      ['photographer', 'Henna Night Coverage', 'Three hours of candid coverage.', 3200, 3, 'instant', 25, 7],
+      ['photographer', 'Family Portrait Session', 'One hour at home or in a park.', 1200, 1, 'instant', 20, 7]
+    ] },
+  { email: 'saja@pbp.test', district: 'Al Olaya', owner: 'Saja Al-Qahtani', name: 'Saja Makeup Lounge', country: 'SA', city: 'Riyadh', cats: ['makeup'], tier: 'pro', years: 7,
+    tags: ['bridal', 'full glam', 'soft glam'], bio: 'Bridal and occasion makeup in our Olaya lounge or at your venue. Long-wear looks made for Riyadh heat.',
+    certs: 'Huda Beauty Academy', packages: [
+      ['makeup', 'Bridal Glam', 'Trial plus wedding-night full glam with lashes.', 4200, 3, 'request', 30, 14],
+      ['makeup', 'Engagement Makeup', 'Soft or full glam, 90 minutes.', 1400, 1.5, 'instant', 25, 7],
+      ['makeup', 'Guest Glam', 'For mothers, sisters and guests.', 700, 1, 'instant', 20, 7]
+    ] },
+  { email: 'mirage@pbp.test', district: 'Al Sulimaniyah', owner: 'Faisal Al-Shammari', name: 'Mirage Media House', country: 'SA', city: 'Riyadh', cats: ['videographer', 'photographer'], tier: 'pro', years: 9,
+    tags: ['corporate', 'events', 'drone', 'brand films'], bio: 'Corporate events, conferences and brand films for Riyadh companies. Same-day highlight edits available.',
+    certs: 'GACA drone licence', packages: [
+      ['videographer', 'Conference Coverage', 'Full-day filming and a 3-minute highlight film.', 9800, 8, 'request', 30, 14],
+      ['photographer', 'Event Photography', 'Half-day event photography, 200 edited photos.', 3500, 4, 'instant', 25, 7]
+    ] },
+  { email: 'reemhair@pbp.test', district: 'Hittin', owner: 'Reem Al-Anazi', name: 'Reem Hair Atelier', country: 'SA', city: 'Riyadh', cats: ['hair'], tier: 'basic', years: 5,
+    tags: ['bridal', 'updo', 'blowout'], bio: 'Bridal updos, soft waves and blowouts. Studio in Hittin and home visits.', certs: '',
+    packages: [
+      ['hair', 'Bridal Updo', 'Updo with veil fitting.', 1600, 2, 'instant', 25, 7],
+      ['hair', 'Event Blowout', 'Blowout with waves or sleek finish.', 450, 1, 'instant', 20, 7]
+    ] },
+  { email: 'goldenhour@pbp.test', district: 'Al Yasmin', owner: 'Khalid Al-Dosari', name: 'Golden Hour KSA', country: 'SA', city: 'Riyadh', cats: ['photographer'], tier: 'basic', years: 4,
+    tags: ['graduation', 'portrait', 'family', 'outdoor'], bio: 'Graduation, family and portrait sessions at golden hour around north Riyadh.', certs: '',
+    packages: [
+      ['photographer', 'Graduation Session', 'One hour on campus or outdoors, 40 edited photos.', 850, 1, 'instant', 20, 7],
+      ['photographer', 'Family Session', 'Ninety minutes outdoors.', 1100, 1.5, 'instant', 20, 7]
+    ] },
+  // Jeddah
+  { email: 'corniche@pbp.test', district: 'Al Shati', owner: 'Omar Bakr', name: 'Corniche Weddings', country: 'SA', city: 'Jeddah', cats: ['photographer', 'videographer'], tier: 'featured', featured: true, years: 12,
+    tags: ['wedding', 'cinematic', 'beach', 'luxury'], bio: 'Jeddah\'s seaside wedding specialists: photo and film teams for weddings on the Corniche and in the city\'s grand halls.',
+    certs: 'Wedding & Portrait Photographers International', packages: [
+      ['photographer', 'Wedding Photography', 'Full night, two photographers, 700+ photos and an album.', 11000, 8, 'request', 30, 14],
+      ['videographer', 'Wedding Film', 'Full night, 6-minute film plus full edit.', 12500, 8, 'request', 30, 14],
+      ['photographer', 'Corniche Engagement Shoot', 'Sunset session by the sea.', 1800, 2, 'instant', 25, 7]
+    ] },
+  { email: 'danabridal@pbp.test', district: 'Al Rawdah', owner: 'Dana Fallatah', name: 'Dana Bridal Beauty', country: 'SA', city: 'Jeddah', cats: ['makeup', 'hair'], tier: 'pro', years: 9,
+    tags: ['bridal', 'henna night', 'hijab styling'], bio: 'Bridal makeup, hair and hijab styling for weddings and henna nights in Jeddah.',
+    certs: 'MAC Pro certified', packages: [
+      ['makeup', 'Bridal Makeup', 'Trial plus wedding-night makeup.', 3900, 3, 'request', 30, 14],
+      ['hair', 'Bridal Hair or Hijab Styling', 'Hair or hijab styling with veil.', 1500, 2, 'instant', 25, 7],
+      ['makeup', 'Henna Night Look', 'Colourful henna-night glam.', 1200, 1.5, 'instant', 25, 7]
+    ] },
+  { email: 'redsea@pbp.test', district: 'Obhur', owner: 'Yazeed Al-Ghamdi', name: 'Red Sea Frames', country: 'SA', city: 'Jeddah', cats: ['photographer'], tier: 'basic', years: 5,
+    tags: ['maternity', 'beach', 'family', 'engagement'], bio: 'Beach maternity, family and engagement sessions on the Obhur coast.', certs: '',
+    packages: [
+      ['photographer', 'Beach Maternity Session', 'Sunset session, gowns available.', 1300, 1.5, 'instant', 25, 7],
+      ['photographer', 'Engagement by the Sea', 'Two hours on the coast.', 1600, 2, 'instant', 25, 7]
+    ] },
+  { email: 'lulu@pbp.test', district: 'Al Hamra', owner: 'Lujain Kamal', name: 'Lulu Glam Studio', country: 'SA', city: 'Jeddah', cats: ['makeup'], tier: 'basic', years: 3,
+    tags: ['graduation', 'soft glam', 'natural'], bio: 'Soft glam for graduations, Eid and evenings out.', certs: '',
+    packages: [
+      ['makeup', 'Graduation Glam', 'Long-wear natural or soft glam.', 550, 1, 'instant', 20, 7],
+      ['makeup', 'Evening Glam', 'Full glam with lashes.', 750, 1.5, 'instant', 20, 7]
+    ] },
+  { email: 'balad@pbp.test', district: 'Al Balad', owner: 'Hassan Jamjoom', name: 'Balad Films', country: 'SA', city: 'Jeddah', cats: ['videographer'], tier: 'pro', years: 7,
+    tags: ['cinematic', 'heritage', 'drone', 'wedding'], bio: 'Cinematic wedding and brand films, with signature shoots in historic Al Balad.',
+    certs: 'GACA drone licence', packages: [
+      ['videographer', 'Cinematic Wedding Film', 'Full night, 5-minute film.', 9500, 8, 'request', 30, 14],
+      ['videographer', 'Al Balad Engagement Film', 'Two-hour shoot in the historic district.', 3800, 2, 'instant', 25, 7]
+    ] },
+  // Egypt
+  { email: 'zamalek@pbp.test', district: 'Zamalek', owner: 'Karim Fawzy', name: 'Zamalek Portraits', country: 'EG', city: 'Cairo', cats: ['photographer'], tier: 'pro', years: 8,
+    tags: ['portrait', 'editorial', 'graduation', 'wedding'], bio: 'Portrait and editorial photographer with a studio in Zamalek. Weddings by request.',
+    certs: '', packages: [
+      ['photographer', 'Studio Portrait Session', 'One hour, 20 retouched photos.', 3000, 1, 'instant', 25, 7],
+      ['photographer', 'Graduation Shoot', 'Outdoor session in Zamalek.', 2200, 1, 'instant', 20, 7],
+      ['photographer', 'Wedding Coverage', 'Eight hours, 500+ photos.', 32000, 8, 'request', 30, 14]
+    ] },
+  { email: 'salma@pbp.test', district: 'Heliopolis', owner: 'Salma Hegazy', name: 'Glow by Salma', country: 'EG', city: 'Cairo', cats: ['makeup'], tier: 'basic', years: 4,
+    tags: ['soft glam', 'natural', 'engagement'], bio: 'Glowing, skin-first makeup for engagements and events in Heliopolis and Nasr City.', certs: '',
+    packages: [
+      ['makeup', 'Engagement Makeup', 'Soft glam with lashes.', 2800, 1.5, 'instant', 25, 7],
+      ['makeup', 'Event Makeup', 'Natural or soft glam.', 1500, 1, 'instant', 20, 7]
+    ] },
+  { email: 'maadi@pbp.test', district: 'Maadi', owner: 'Dina Lotfy', name: 'Maadi Hair Studio', country: 'EG', city: 'Cairo', cats: ['hair'], tier: 'basic', years: 10,
+    tags: ['bridal', 'braids', 'curly hair'], bio: 'Bridal styling, braids and curly-hair care in Maadi.', certs: '',
+    packages: [
+      ['hair', 'Bridal Styling', 'Updo or waves with accessories.', 4500, 2, 'instant', 25, 7],
+      ['hair', 'Event Styling', 'Blowout, curls or braids.', 1200, 1, 'instant', 20, 7]
+    ] },
+  { email: 'alexfilms@pbp.test', district: 'San Stefano', owner: 'Ahmed Shafik', name: 'Alex Wedding Films', country: 'EG', city: 'Alexandria', cats: ['videographer'], tier: 'pro', years: 6,
+    tags: ['wedding', 'cinematic', 'beach', 'drone'], bio: 'Wedding films on the Alexandria coast, from San Stefano to Montaza.', certs: '',
+    packages: [
+      ['videographer', 'Wedding Film', 'Full day, 5-minute film and full edit.', 26000, 9, 'request', 30, 14],
+      ['videographer', 'Engagement Reel', 'Sunset reel by the sea.', 6500, 2, 'instant', 25, 7]
+    ] }
 ];
+
 
 const vendorIds = {};
 VENDORS.forEach((spec, i) => {
   const uid = user(spec.email, spec.owner, 'vendor', null, spec.country === 'SA' ? 'ar' : 'en');
-  const [lat, lng] = cityCoords(spec.country, spec.city);
+  const [dlat, dlng] = districtCoords(spec.country, spec.city, spec.district) || cityCoords(spec.country, spec.city);
+  const lat = +(dlat + (((i * 37) % 11) - 5) * 0.0022).toFixed(5);
+  const lng = +(dlng + (((i * 53) % 11) - 5) * 0.0022).toFixed(5);
   const docName = `seed-id-${i}.svg`;
   fs.writeFileSync(path.join(PRIVATE, docName), art(i, 2).replace('</svg>', `<text x="500" y="420" font-size="48" text-anchor="middle" fill="#fff" font-family="sans-serif">ID document — ${spec.owner}</text></svg>`));
   const trialEnds = addDays(t, 30);
@@ -131,6 +226,7 @@ VENDORS.forEach((spec, i) => {
       'bank', spec.country === 'EG' ? 'EG380019000500000000263180002' : 'SA0380000000608010167519', JSON.stringify(spec.country === 'SA' ? [0, 1, 2, 3, 4, 6] : [0, 1, 2, 3, 4, 5, 6]),
       '10:00', spec.cats.includes('makeup') || spec.cats.includes('hair') ? '22:00' : '23:00', nowIso(), nowIso()).lastInsertRowid;
   vendorIds[spec.email] = vid;
+  db.prepare('UPDATE vendors SET district = ? WHERE id = ?').run(spec.district, vid);
   db.prepare('UPDATE vendors SET avatar_url = ? WHERE id = ?').run(avatar(AVATARS[spec.email]), vid);
   for (const c of spec.cats) db.prepare('INSERT INTO vendor_categories (vendor_id, category) VALUES (?, ?)').run(vid, c);
   for (const [category, title, desc, price, hours, mode, dep, due] of spec.packages) {
@@ -138,7 +234,7 @@ VENDORS.forEach((spec, i) => {
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
       .run(vid, category, title, desc, price, hours, mode, dep, due, JSON.stringify(STANDARD_REFUNDS.filter((r) => r.days_before >= due)), 0, nowIso());
   }
-  for (const [photoId, caption] of PORTFOLIOS[spec.email]) {
+  for (const [photoId, caption] of portfolioFor(spec.email)) {
     db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)').run(vid, 'image', pexels(photoId), caption, nowIso());
   }
   db.prepare('INSERT INTO faqs (vendor_id, question, answer) VALUES (?,?,?)').run(vid, 'Do you travel to venues?', `Yes — anywhere in ${spec.city} and nearby cities. Travel outside the city is quoted separately.`);
@@ -158,8 +254,8 @@ const pendingId = db.prepare(`INSERT INTO vendors (user_id, business_name, bio, 
   .run(pendingUid, 'Fresh Face by Aya', 'Makeup artist for engagements and graduations in Mansoura.', 'EG', 'Mansoura', ...cityCoords('EG', 'Mansoura'), 'EGP', 2,
     JSON.stringify(['natural', 'graduation']), 'seed-id-pending.svg', 'basic', 'trialing', addDays(t, 90), nowIso()).lastInsertRowid;
 db.prepare("INSERT INTO vendor_categories (vendor_id, category) VALUES (?, 'makeup')").run(pendingId);
-db.prepare('UPDATE vendors SET avatar_url = ? WHERE id = ?').run(avatar(AVATARS['fresh@pbp.test']), pendingId);
-for (const [photoId, caption] of PORTFOLIOS['fresh@pbp.test']) {
+db.prepare('UPDATE vendors SET avatar_url = ?, district = ? WHERE id = ?').run(avatar(AVATARS['fresh@pbp.test']), 'University District', pendingId);
+for (const [photoId, caption] of portfolioFor('fresh@pbp.test', 4)) {
   db.prepare('INSERT INTO media (vendor_id, kind, url, caption, created_at) VALUES (?,?,?,?,?)').run(pendingId, 'image', pexels(photoId), caption, nowIso());
 }
 
@@ -193,7 +289,11 @@ function booking({ vendorEmail, pkgIndex = 0, customer, date, start = '14:00', s
 }
 
 const REVIEWS = [
-  [5, 'Absolutely professional from the first message to delivery. Worth every pound.', 'Thank you! It was a joy to be part of your day.'],
+  [5, 'Absolutely professional from the first message to delivery. Worth every penny.', 'Thank you! It was a joy to be part of your day.'],
+  [5, 'Booked two months ahead and everything was exactly as agreed. The photos made my mother cry.', 'Thank you for trusting us with your family\'s day.'],
+  [4, 'Very talented and kind. Arrived 20 minutes late but stayed longer to make up for it.'],
+  [5, 'The best decision we made for the wedding. Guests are still asking who did it.'],
+  [5, 'Listened to exactly what I wanted and made me feel beautiful and comfortable.', 'It was a pleasure — congratulations again!'],
   [5, 'On time, calm and so talented. Our families loved the results.'],
   [4, 'Great work. Delivery took a few days longer than promised but quality was excellent.', 'Thanks for your patience — we have added an editor to speed things up.'],
   [5, 'Made me feel so comfortable. Will book again for our anniversary.'],
@@ -202,7 +302,10 @@ const REVIEWS = [
 const pastBookings = [
   ['vendor@pbp.test', 1, 'EG'], ['vendor@pbp.test', 0, 'EG'], ['nour@pbp.test', 0, 'EG'], ['nour@pbp.test', 2, 'EG'], ['alex@pbp.test', 0, 'EG'],
   ['mariam@pbp.test', 1, 'EG'], ['sara@pbp.test', 0, 'EG'], ['reel@pbp.test', 0, 'EG'],
-  ['vendor-sa@pbp.test', 0, 'SA'], ['vendor-sa@pbp.test', 2, 'SA'], ['riyadhlens@pbp.test', 1, 'SA'], ['dune@pbp.test', 0, 'SA'], ['coastal@pbp.test', 0, 'SA'], ['hala@pbp.test', 0, 'SA']
+  ['vendor-sa@pbp.test', 0, 'SA'], ['vendor-sa@pbp.test', 2, 'SA'], ['riyadhlens@pbp.test', 1, 'SA'], ['dune@pbp.test', 0, 'SA'], ['coastal@pbp.test', 0, 'SA'], ['hala@pbp.test', 0, 'SA'],
+  ['noor@pbp.test', 1, 'SA'], ['saja@pbp.test', 1, 'SA'], ['mirage@pbp.test', 1, 'SA'], ['reemhair@pbp.test', 0, 'SA'], ['goldenhour@pbp.test', 0, 'SA'],
+  ['corniche@pbp.test', 2, 'SA'], ['danabridal@pbp.test', 1, 'SA'], ['redsea@pbp.test', 0, 'SA'], ['lulu@pbp.test', 0, 'SA'], ['balad@pbp.test', 1, 'SA'],
+  ['zamalek@pbp.test', 0, 'EG'], ['salma@pbp.test', 1, 'EG'], ['maadi@pbp.test', 1, 'EG'], ['alexfilms@pbp.test', 1, 'EG']
 ];
 pastBookings.forEach(([email, pkgIndex, market], i) => {
   for (let k = 0; k < 2; k++) {

@@ -16,7 +16,7 @@ const FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
 );
 document.addEventListener('error', (e) => {
   const img = e.target;
-  if (img instanceof HTMLImageElement && !img.dataset.fallback) {
+  if (img instanceof HTMLImageElement && !img.dataset.fallback && !img.closest('.leaflet-container')) {
     img.dataset.fallback = '1';
     img.src = FALLBACK;
   }

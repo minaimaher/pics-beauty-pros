@@ -217,7 +217,7 @@ export function VendorCard({ v }) {
           <Stars value={v.rating_avg} count={v.rating_count} />
         </div>
         <p className="muted small">
-          {v.categories.map((c) => t(CATEGORY_LABEL[c])).join(' · ')} — {t(v.city)}
+          {v.categories.map((c) => t(CATEGORY_LABEL[c])).join(' · ')} — {v.district ? `${t(v.district)}, ` : ''}{t(v.city)}
           {v.distance_km != null && ` · ${fmt.number(v.distance_km)} ${t('km')}`}
         </p>
         <div className="tags">{v.style_tags.slice(0, 3).map((tag) => <span key={tag} className="tag">{tag}</span>)}</div>

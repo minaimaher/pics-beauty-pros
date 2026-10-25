@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { db, nowIso, today, addDays, getSetting, UPLOAD_DIR, tx } from '../db.js';
 import { requireAuth } from '../auth.js';
-import { CATEGORIES, CURRENCY, CITIES, cityCoords } from '../geo.js';
+import { CATEGORIES, CURRENCY, CITIES, DISTRICTS, cityCoords, districtCoords, distanceKm, MAX_PIN_KM } from '../geo.js';
 import { ValidationError, validatePolicy } from '../services/policy.js';
 import { vendorProfile, effectiveTier, tierLimits, packageOut } from '../services/vendors.js';
 import { pay } from '../services/payments.js';
@@ -76,7 +76,8 @@ r.post('/apply', docUpload.single('id_document'), (req, res) => {
   if (!CITIES[country][b.city]) throw new ValidationError('Choose a city');
   if (!req.file) throw new ValidationError('Upload an ID document for verification');
   const cats = cleanCategories(b.categories);
-  const coords = cityCoords(country, b.city);
+  const district = DISTRICTS[country][b.city]?.[b.district] ? b.district : null;
+  const coords = (district && districtCoords(country, b.city, district)) || cityCoords(country, b.city);
   const trialEnds = addDays(today(), getSetting('trialDays'));
   const id = tx(() => {
     const info = db.prepare(`INSERT INTO vendors (user_id, business_name, bio, country, city, lat, lng, currency, experience_years, certifications,
@@ -84,6 +85,7 @@ r.post('/apply', docUpload.single('id_document'), (req, res) => {
       .run(req.user.id, b.business_name.trim(), b.bio || '', country, b.city, coords[0], coords[1], CURRENCY[country], Number(b.experience_years) || 0,
         b.certifications || '', JSON.stringify(cleanTags(b.style_tags)), req.file.filename, 'basic', 'trialing', trialEnds, nowIso());
     setCategories(info.lastInsertRowid, cats);
+    db.prepare('UPDATE vendors SET district = ? WHERE id = ?').run(district, info.lastInsertRowid);
     return info.lastInsertRowid;
   })();
   notifyAdmins({ type: 'vendor_application', title: 'New vendor application', body: `${b.business_name} (${cats.join(', ')}) in ${b.city}`, link: '/admin/vendors' });
@@ -111,11 +113,21 @@ r.patch('/profile', (req, res) => {
   const b = req.body || {};
   const country = v.country;
   if (b.city && !CITIES[country][b.city]) throw new ValidationError('Choose a city in your market');
-  const coords = b.city ? cityCoords(country, b.city) : [v.lat, v.lng];
+  const city = b.city || v.city;
+  const district = b.district !== undefined ? (DISTRICTS[country][city]?.[b.district] ? b.district : null) : (b.city && b.city !== v.city ? null : v.district);
+  // An explicit map pin wins; otherwise a changed city or district moves the pin to its centre.
+  let coords = [v.lat, v.lng];
+  if (b.lat != null && b.lng != null) {
+    coords = [Number(b.lat), Number(b.lng)];
+    if (!coords.every(Number.isFinite) || distanceKm(coords, cityCoords(country, city)) > MAX_PIN_KM) throw new ValidationError(`Place your pin within ${MAX_PIN_KM} km of ${city}`);
+    coords = coords.map((n) => +n.toFixed(5));
+  } else if (city !== v.city || district !== v.district) {
+    coords = (district && districtCoords(country, city, district)) || cityCoords(country, city);
+  }
   tx(() => {
-    db.prepare(`UPDATE vendors SET business_name = ?, bio = ?, city = ?, lat = ?, lng = ?, experience_years = ?, certifications = ?, style_tags = ?,
+    db.prepare(`UPDATE vendors SET business_name = ?, bio = ?, city = ?, district = ?, lat = ?, lng = ?, experience_years = ?, certifications = ?, style_tags = ?,
         service_radius_km = ? WHERE id = ?`)
-      .run(b.business_name?.trim() || v.business_name, b.bio ?? v.bio, b.city || v.city, coords[0], coords[1],
+      .run(b.business_name?.trim() || v.business_name, b.bio ?? v.bio, city, district, coords[0], coords[1],
         b.experience_years != null ? Number(b.experience_years) || 0 : v.experience_years, b.certifications ?? v.certifications,
         b.style_tags ? JSON.stringify(cleanTags(b.style_tags)) : v.style_tags,
         b.service_radius_km != null ? Math.max(0, Math.min(500, Number(b.service_radius_km) || 0)) : v.service_radius_km, v.id);

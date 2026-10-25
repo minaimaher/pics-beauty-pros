@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, useLocation, Link, BASE, CATEGORY_LABEL, CATEGORY_PLURAL } from '../lib.jsx';
 import { VendorCard, Loading, ErrorNote, Empty } from '../components.jsx';
-import { SITE_PHOTOS, pexels } from '../../../server/photos.js';
+import { SITE_PHOTOS, CITY_PHOTOS, pexels } from '../../../server/photos.js';
+import { MapView } from '../MapView.jsx';
 
 
 export function Home() {
@@ -63,6 +64,22 @@ export function Home() {
       </section>
 
       <ErrorNote error={error} />
+      {data?.cityCounts?.length > 0 && (
+        <section className="container section">
+          <div className="section-head">
+            <h2>{t('Explore by city')}</h2>
+            <Link to="/search?view=map">⌖ {t('Open the map')}</Link>
+          </div>
+          <div className="city-grid">
+            {data.cityCounts.map(({ city, n }) => (
+              <Link key={city} to={`/search?city=${encodeURIComponent(city)}&view=map`} className="city-tile">
+                <img src={pexels(CITY_PHOTOS[city] || SITE_PHOTOS.photographer, 700)} alt="" loading="lazy" />
+                <span className="cat-label"><strong>{t(city)}</strong><span className="small">{t('{n} vendors', { n: fmt.number(n) })}</span></span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       {data?.featured?.length > 0 && (
         <section className="container section">
           <div className="section-head"><h2>{t('Featured vendors')}</h2></div>
@@ -89,29 +106,64 @@ export function Home() {
   );
 }
 
+// Builds a vendor's map popup with DOM APIs (no HTML strings from user content).
+function vendorPopup(v, t, fmt) {
+  return (div) => {
+    const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls || '', textContent: text || '' });
+    if (v.cover) {
+      const img = el('img', 'pp-cover');
+      img.src = v.cover;
+      img.alt = '';
+      div.append(img);
+    }
+    div.append(el('strong', 'pp-name', v.business_name));
+    div.append(el('span', 'pp-meta', `★ ${v.rating_avg ? v.rating_avg.toFixed(1) : '—'} · ${[v.district && t(v.district), t(v.city)].filter(Boolean).join(', ')}`));
+    if (v.from_price != null) div.append(el('span', 'pp-price', `${t('From')} ${fmt.money(v.from_price, v.currency)}`));
+    const btn = el('button', 'btn btn-small', t('View profile'));
+    btn.onclick = () => navigate(`/vendors/${v.id}`);
+    div.append(btn);
+  };
+}
+
+const initialsOf = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
 export function Search() {
   const { market, meta } = useApp();
   const t = useT();
+  const fmt = useFormat();
   const { query } = useLocation();
-  const [filters, setFilters] = useState({ sort: 'recommended', radiusKm: '50', ...query });
+  const [filters, setFilters] = useState({ sort: 'recommended', radiusKm: '50', view: 'list', ...query });
   const [state, setState] = useState({ loading: true });
   const [showFilters, setShowFilters] = useState(false);
   const currency = meta?.currency?.[market];
   const cities = Object.keys(meta?.cities?.[market] || {});
 
-  useEffect(() => { setFilters((f) => ({ ...f, city: cities.includes(f.city) ? f.city : '' })); }, [market]); // eslint-disable-line react-hooks/exhaustive-deps
+  const districts = Object.keys(meta?.districts?.[market]?.[filters.city] || {});
+
+  useEffect(() => { setFilters((f) => (cities.length && !cities.includes(f.city) && f.city ? { ...f, city: '', district: '' } : f)); }, [market, cities.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const p = new URLSearchParams(Object.entries({ ...filters, country: market }).filter(([, v]) => v));
+    const { view, ...apiFilters } = filters;
+    const p = new URLSearchParams(Object.entries({ ...apiFilters, country: market }).filter(([, v]) => v));
     if (filters.sort === 'distance' && !filters.city) p.set('sort', 'recommended');
     setState((s) => ({ ...s, loading: true }));
     const id = setTimeout(() => {
       api('/search?' + p).then((d) => setState({ loading: false, ...d }), (error) => setState({ loading: false, error }));
-      const visible = new URLSearchParams(Object.entries(filters).filter(([k, v]) => v && !(k === 'sort' && v === 'recommended') && !(k === 'radiusKm' && v === '50')));
+      const visible = new URLSearchParams(Object.entries(filters).filter(([k, v]) => v && !(k === 'sort' && v === 'recommended') && !(k === 'radiusKm' && v === '50') && !(k === 'view' && v === 'list')));
       history.replaceState(null, '', BASE + '/search' + (visible.size ? '?' + visible : ''));
     }, 200);
     return () => clearTimeout(id);
   }, [filters, market]);
+
+  // Memoised so the map only re-fits when the results or the area actually change.
+  const mapMarkers = useMemo(() => (state.results || []).map((v) => ({
+    id: v.id, lat: v.lat, lng: v.lng, avatar: v.avatar_url, initials: initialsOf(v.business_name),
+    label: v.from_price != null ? fmt.money(v.from_price, v.currency) : '', popup: vendorPopup(v, t, fmt)
+  })), [state.results, t]); // eslint-disable-line react-hooks/exhaustive-deps
+  const mapCenter = useMemo(
+    () => (filters.district && meta?.districts?.[market]?.[filters.city]?.[filters.district]) || meta?.cities?.[market]?.[filters.city] || (market === 'SA' ? [23.9, 45.0] : [30.2, 31.0]),
+    [filters.city, filters.district, market, meta]
+  );
 
   const set = (k) => (e) => setFilters({ ...filters, [k]: e.target.value });
   const tags = filters.tags ? filters.tags.split(',') : [];
@@ -129,11 +181,19 @@ export function Search() {
           </select>
         </label>
         <label className="field">{t('City')}
-          <select value={filters.city || ''} onChange={set('city')}>
+          <select value={filters.city || ''} onChange={(e) => setFilters({ ...filters, city: e.target.value, district: '' })}>
             <option value="">{t('Anywhere')}</option>
             {cities.map((c) => <option key={c} value={c}>{t(c)}</option>)}
           </select>
         </label>
+        {districts.length > 0 && (
+          <label className="field">{t('District')}
+            <select value={filters.district || ''} onChange={set('district')}>
+              <option value="">{t('All districts')}</option>
+              {districts.map((d2) => <option key={d2} value={d2}>{t(d2)}</option>)}
+            </select>
+          </label>
+        )}
         {filters.city && (
           <label className="field">{t('Within {km} km', { km: filters.radiusKm })}
             <input type="range" min="5" max="300" step="5" value={filters.radiusKm} onChange={set('radiusKm')} />
@@ -154,7 +214,7 @@ export function Search() {
             </div>
           </div>
         )}
-        <button className="btn-link" onClick={() => setFilters({ sort: 'recommended', radiusKm: '50' })}>{t('Clear filters')}</button>
+        <button className="btn-link" onClick={() => setFilters({ sort: 'recommended', radiusKm: '50', view: filters.view })}>{t('Clear filters')}</button>
       </aside>
       <section className="results">
         <div className="results-head">
@@ -162,6 +222,10 @@ export function Search() {
             {state.loading ? t('Searching…') : t('{n} vendors', { n: state.results?.length ?? 0 })}
           </p>
           <div className="results-tools">
+            <div className="seg view-toggle" role="group" aria-label={t('View')}>
+              <button className={filters.view !== 'map' ? 'on' : ''} onClick={() => setFilters({ ...filters, view: 'list' })} aria-pressed={filters.view !== 'map'}>☰ {t('List')}</button>
+              <button className={filters.view === 'map' ? 'on' : ''} onClick={() => setFilters({ ...filters, view: 'map' })} aria-pressed={filters.view === 'map'}>⌖ {t('Map')}</button>
+            </div>
             <button className="btn btn-ghost btn-small filters-toggle" onClick={() => setShowFilters(!showFilters)}>{t('Filters')}</button>
             <label className="sort">{t('Sort')}
               <select value={filters.sort} onChange={set('sort')}>
@@ -176,6 +240,15 @@ export function Search() {
         </div>
         <ErrorNote error={state.error} />
         {!state.loading && state.results?.length === 0 && <Empty>{t('No vendors match these filters yet. Try another date or widen the area.')}</Empty>}
+        {filters.view === 'map' && (
+          <MapView
+            className="search-map"
+            height={520}
+            center={mapCenter}
+            zoom={filters.city ? 11 : 5}
+            markers={mapMarkers}
+          />
+        )}
         <div className="card-grid">{state.results?.map((v) => <VendorCard key={v.id} v={v} />)}</div>
       </section>
     </div>

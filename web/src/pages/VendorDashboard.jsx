@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, useApi, useApp, useT, useFormat, navigate, Link, CATEGORY_LABEL } from '../lib.jsx';
 import { Loading, ErrorNote, Empty, Tabs, PaymentFields, Modal, MonthCalendar, Stars, Avatar } from '../components.jsx';
+import { MapView } from '../MapView.jsx';
 import { BookingsList, BookingDetail } from './Account.jsx';
 
 function CategoryChecks({ value, onChange }) {
@@ -20,7 +21,7 @@ function CategoryChecks({ value, onChange }) {
 export function VendorApply() {
   const t = useT();
   const { meta, market, refreshSession, vendor } = useApp();
-  const [form, setForm] = useState({ business_name: '', country: market, city: '', bio: '', experience_years: '', certifications: '', style_tags: '', categories: [] });
+  const [form, setForm] = useState({ business_name: '', country: market, city: '', district: '', bio: '', experience_years: '', certifications: '', style_tags: '', categories: [] });
   const [idDoc, setIdDoc] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [files, setFiles] = useState([]);
@@ -74,12 +75,20 @@ export function VendorApply() {
             </select>
           </label>
           <label className="field">{t('City')}
-            <select value={form.city} onChange={set('city')} required>
+            <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value, district: '' })} required>
               <option value="">{t('Choose…')}</option>
               {Object.keys(meta.cities[form.country]).map((c) => <option key={c} value={c}>{t(c)}</option>)}
             </select>
           </label>
         </div>
+        {form.city && (
+          <label className="field">{t('District')}
+            <select value={form.district} onChange={set('district')}>
+              <option value="">{t('Choose…')}</option>
+              {Object.keys(meta.districts?.[form.country]?.[form.city] || {}).map((d2) => <option key={d2} value={d2}>{t(d2)}</option>)}
+            </select>
+          </label>
+        )}
         <label className="field">{t('About your business')}<textarea rows="4" value={form.bio} onChange={set('bio')} /></label>
         <div className="row-2">
           <label className="field">{t('Years of experience')}<input type="number" min="0" value={form.experience_years} onChange={set('experience_years')} /></label>
@@ -163,8 +172,20 @@ function ProfileTab({ profile, reload }) {
   const { meta, notify } = useApp();
   const [form, setForm] = useState({
     business_name: profile.business_name, bio: profile.bio, city: profile.city, experience_years: profile.experience_years,
-    certifications: profile.certifications, style_tags: profile.style_tags.join(', '), categories: profile.categories, service_radius_km: profile.service_radius_km
+    certifications: profile.certifications, style_tags: profile.style_tags.join(', '), categories: profile.categories, service_radius_km: profile.service_radius_km,
+    district: profile.district || ''
   });
+  const [pin, setPin] = useState({ lat: profile.lat, lng: profile.lng, moved: false });
+  const districtList = meta.districts?.[profile.country]?.[form.city] || {};
+  const chooseArea = (city, district) => {
+    setForm({ ...form, city, district });
+    const c = meta.districts?.[profile.country]?.[city]?.[district] || meta.cities[profile.country][city];
+    setPin({ lat: c[0], lng: c[1], moved: false });
+  };
+  // Stable props so typing elsewhere in the form doesn't re-centre the map.
+  const pinCenter = useMemo(() => [pin.lat, pin.lng], [pin.lat, pin.lng]);
+  const pinMarkers = useMemo(() => [{ id: 'me', lat: pin.lat, lng: pin.lng, avatar: profile.avatar_url, initials: (profile.owner_first_name || profile.business_name)[0] }],
+    [pin.lat, pin.lng, profile.avatar_url, profile.owner_first_name, profile.business_name]);
   const [faqs, setFaqs] = useState(profile.faqs.length ? profile.faqs : [{ question: '', answer: '' }]);
   const [err, setErr] = useState(null);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -184,7 +205,7 @@ function ProfileTab({ profile, reload }) {
     e.preventDefault();
     setErr(null);
     try {
-      await api('/vendor/profile', { method: 'PATCH', body: form });
+      await api('/vendor/profile', { method: 'PATCH', body: { ...form, ...(pin.moved ? { lat: pin.lat, lng: pin.lng } : {}) } });
       await api('/vendor/faqs', { method: 'PUT', body: { faqs } });
       notify(t('Profile saved'));
       reload();
@@ -204,9 +225,21 @@ function ProfileTab({ profile, reload }) {
       <div className="field"><span>{t('Services you offer')}</span><CategoryChecks value={form.categories} onChange={(c) => setForm({ ...form, categories: c })} /></div>
       <div className="row-2">
         <label className="field">{t('City')}
-          <select value={form.city} onChange={set('city')}>{Object.keys(meta.cities[profile.country]).map((c) => <option key={c} value={c}>{t(c)}</option>)}</select>
+          <select value={form.city} onChange={(e) => chooseArea(e.target.value, '')}>{Object.keys(meta.cities[profile.country]).map((c) => <option key={c} value={c}>{t(c)}</option>)}</select>
         </label>
-        <label className="field">{t('Travel radius (km)')}<input type="number" min="0" max="500" value={form.service_radius_km} onChange={set('service_radius_km')} /></label>
+        <label className="field">{t('District')}
+          <select value={form.district} onChange={(e) => chooseArea(form.city, e.target.value)}>
+            <option value="">{t('Choose…')}</option>
+            {Object.keys(districtList).map((d2) => <option key={d2} value={d2}>{t(d2)}</option>)}
+          </select>
+        </label>
+      </div>
+      <label className="field">{t('Travel radius (km)')}<input type="number" min="0" max="500" value={form.service_radius_km} onChange={set('service_radius_km')} /></label>
+      <div className="field">
+        <span>{t('Your location on the map')}</span>
+        <MapView height={280} fit={false} zoom={12} center={pinCenter} circleKm={Number(form.service_radius_km) || 0}
+          onPick={(lat, lng) => setPin({ lat, lng, moved: true })} markers={pinMarkers} />
+        <span className="small muted">{t('Click the map to move your pin. Customers see your area, not your exact address.')}</span>
       </div>
       <label className="field">{t('About your business')}<textarea rows="5" value={form.bio} onChange={set('bio')} /></label>
       <div className="row-2">

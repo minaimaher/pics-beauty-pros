@@ -39,6 +39,7 @@ function client() {
     return { status: res.status, body: await res.json().catch(() => ({})) };
   };
   return {
+    cookie: () => cookie,
     get: (p) => call('GET', p),
     post: (p, b) => call('POST', p, b || {}),
     put: (p, b) => call('PUT', p, b),
@@ -81,7 +82,12 @@ test('search filters by market, category, price and city radius', async () => {
   const cheap = await c.get('/search?country=EG&maxPrice=2000');
   assert.ok(cheap.body.results.every((v) => v.from_price <= 2000));
   const alex = await c.get('/search?country=EG&city=Alexandria&radiusKm=20&sort=distance');
-  assert.deepEqual(alex.body.results.map((v) => v.business_name), ['Alex Frames']);
+  assert.deepEqual(alex.body.results.map((v) => v.business_name).sort(), ['Alex Frames', 'Alex Wedding Films']);
+  assert.ok(alex.body.results.every((v) => v.lat && v.lng && v.district), 'results carry map coordinates and district');
+  const malqa = await c.get('/search?country=SA&city=Riyadh&district=Al%20Malqa');
+  assert.deepEqual(malqa.body.results.map((v) => v.business_name), ['Noor Al Riyadh Studio']);
+  const jeddah = await c.get('/search?country=SA&city=Jeddah&radiusKm=30');
+  assert.ok(jeddah.body.results.length >= 6, 'Jeddah has a good spread of vendors');
   const pending = eg.body.results.find((v) => v.business_name === 'Fresh Face by Aya');
   assert.equal(pending, undefined, 'pending vendors are not listed');
 });
@@ -295,4 +301,18 @@ test('vendors have profile photos and can replace them', async () => {
   const { avatar_url } = await res.json();
   assert.match(avatar_url, /^\/uploads\/media\/.+\.png$/);
   assert.equal((await anon.get(`/vendors/${vendorId('vendor@pbp.test')}`)).body.avatar_url, avatar_url);
+});
+
+test('vendors set their district and map pin within their city', async () => {
+  const v = client();
+  await v.login('vendor-sa@pbp.test');
+  const patch = (body) => fetch(base + '/vendor/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json', Cookie: v.cookie() }, body: JSON.stringify(body) });
+  assert.equal((await patch({ district: 'Obhur' })).status, 200);
+  let p = (await v.get('/vendor/profile')).body;
+  assert.equal(p.district, 'Obhur');
+  assert.ok(Math.abs(p.lat - 21.7277) < 0.001, 'pin moves to the district centre');
+  assert.equal((await patch({ lat: 21.70, lng: 39.11 })).status, 200);
+  p = (await v.get('/vendor/profile')).body;
+  assert.deepEqual([p.lat, p.lng], [21.7, 39.11]);
+  assert.equal((await patch({ lat: 24.71, lng: 46.67 })).status, 400, 'a pin in Riyadh is rejected for a Jeddah vendor');
 });

@@ -19,12 +19,40 @@ export const CITIES = {
   }
 };
 
+// Neighbourhoods vendors can be based in, with approximate centre coordinates.
+export const DISTRICTS = {
+  EG: {
+    Cairo: { Zamalek: [30.0626, 31.2197], 'Garden City': [30.0368, 31.2318], Downtown: [30.0478, 31.2394], Heliopolis: [30.0911, 31.3225], Maadi: [29.9602, 31.2569], 'Nasr City': [30.0561, 31.3301] },
+    Giza: { Dokki: [30.0385, 31.2123], Mohandessin: [30.0566, 31.2001], Haram: [29.9965, 31.16] },
+    'New Cairo': { 'Fifth Settlement': [30.0084, 31.4285], Rehab: [30.0611, 31.4919] },
+    'Sheikh Zayed': { 'Beverly Hills': [30.0402, 30.9905], 'Al Rabwa': [30.0571, 31.0045] },
+    Alexandria: { Smouha: [31.2156, 29.9439], 'San Stefano': [31.2463, 29.9706], Gleem: [31.2397, 29.9617], Miami: [31.2667, 30.0] },
+    Mansoura: { 'University District': [31.042, 31.353], Talkha: [31.0539, 31.3779] },
+    Hurghada: { 'El Gouna': [27.3949, 33.6782], Sakkala: [27.2286, 33.8336] }
+  },
+  SA: {
+    Riyadh: { 'Al Olaya': [24.6905, 46.6853], 'Al Malqa': [24.8125, 46.6152], Hittin: [24.7636, 46.6006], 'Al Nakheel': [24.7425, 46.6488], 'Al Yasmin': [24.8233, 46.64], 'Al Sulimaniyah': [24.7035, 46.7047], Diriyah: [24.7341, 46.5755] },
+    Jeddah: { 'Al Rawdah': [21.5636, 39.1566], 'Al Shati': [21.5986, 39.1112], 'Al Hamra': [21.528, 39.16], Obhur: [21.7277, 39.1022], 'Al Zahra': [21.5869, 39.1394], 'Al Balad': [21.4858, 39.1862], 'Al Andalus': [21.5383, 39.1517] },
+    Mecca: { 'Al Aziziyah': [21.4005, 39.8655], 'Al Awali': [21.3606, 39.8949] },
+    Medina: { Quba: [24.4389, 39.6172], 'Central Medina': [24.4672, 39.6111] },
+    Dammam: { 'Al Faisaliyah': [26.411, 50.036], 'Al Shati': [26.4689, 50.127] },
+    Khobar: { 'Al Corniche': [26.2885, 50.216], 'Al Ulaya': [26.265, 50.2] }
+  }
+};
+
 export const CURRENCY = { EG: 'EGP', SA: 'SAR' };
 export const CATEGORIES = ['photographer', 'videographer', 'makeup', 'hair'];
 
 export function cityCoords(country, city) {
   return CITIES[country]?.[city] || null;
 }
+
+export function districtCoords(country, city, district) {
+  return DISTRICTS[country]?.[city]?.[district] || null;
+}
+
+// A pin must stay within this distance of the vendor's city centre.
+export const MAX_PIN_KM = 60;
 
 export function distanceKm([lat1, lng1], [lat2, lng2]) {
   const rad = (d) => (d * Math.PI) / 180;

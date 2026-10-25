@@ -1,6 +1,6 @@
 import { useT, BASE } from '../lib.jsx';
 import { BrandMark } from '../components.jsx';
-import { PORTFOLIOS, pexels } from '../../../server/photos.js';
+import { POOLS, pexels } from '../../../server/photos.js';
 
 const COLORS = [
   ['Plum Night', '#1F1830', 'Primary ink, headers, app icon background'],
@@ -20,7 +20,7 @@ const ASSETS = [
 export function Brand() {
   const t = useT();
   const asset = (f) => `${BASE}/brand/${f}`;
-  const samples = [PORTFOLIOS['vendor@pbp.test'][1], PORTFOLIOS['nour@pbp.test'][0], PORTFOLIOS['alex@pbp.test'][0], PORTFOLIOS['vendor-sa@pbp.test'][0]];
+  const samples = [POOLS.wedding[1], POOLS.makeupWork[0], POOLS.maternity[0], POOLS.hijabBride[0]];
   return (
     <div className="container section brand-page">
       <p className="eyebrow">{t('Brand guidelines')}</p>

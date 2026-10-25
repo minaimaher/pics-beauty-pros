@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db, getSetting, nowIso, today } from '../db.js';
-import { CITIES, CATEGORIES, CURRENCY, cityCoords, distanceKm } from '../geo.js';
+import { CITIES, DISTRICTS, CATEGORIES, CURRENCY, cityCoords, distanceKm } from '../geo.js';
 import { METHODS } from '../services/payments.js';
 import { vendorSummary, vendorProfile, effectiveTier, tierLimits } from '../services/vendors.js';
 import { isAvailableOn, monthCalendar, freeSlots } from '../services/availability.js';
@@ -12,6 +12,7 @@ r.get('/meta', (_req, res) => {
   const tiers = getSetting('tiers');
   res.json({
     cities: CITIES,
+    districts: DISTRICTS,
     categories: CATEGORIES,
     currency: CURRENCY,
     paymentMethods: METHODS,
@@ -31,7 +32,8 @@ r.get('/home', (req, res) => {
   const topRated = db.prepare("SELECT * FROM vendors WHERE status = 'approved' AND country = ? ORDER BY rating_avg DESC, rating_count DESC LIMIT 8").all(country);
   const counts = Object.fromEntries(CATEGORIES.map((c) => [c, db.prepare(`SELECT COUNT(*) n FROM vendor_categories vc JOIN vendors v ON v.id = vc.vendor_id
       WHERE vc.category = ? AND v.status = 'approved' AND v.country = ?`).get(c, country).n]));
-  res.json({ featured: featured.map(vendorSummary), topRated: topRated.map(vendorSummary), categoryCounts: counts });
+  const cityCounts = db.prepare("SELECT city, COUNT(*) n FROM vendors WHERE status = 'approved' AND country = ? GROUP BY city ORDER BY n DESC").all(country);
+  res.json({ featured: featured.map(vendorSummary), topRated: topRated.map(vendorSummary), categoryCounts: counts, cityCounts });
 });
 
 r.get('/search', (req, res) => {
@@ -43,6 +45,10 @@ r.get('/search', (req, res) => {
   if (q.category) {
     where.push('EXISTS (SELECT 1 FROM vendor_categories vc WHERE vc.vendor_id = v.id AND vc.category = ?)');
     params.push(q.category);
+  }
+  if (q.district) {
+    where.push('v.district = ?');
+    params.push(q.district);
   }
   if (q.q) {
     where.push('(v.business_name LIKE ? OR v.bio LIKE ? OR v.style_tags LIKE ?)');
