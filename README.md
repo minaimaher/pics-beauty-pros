@@ -12,7 +12,7 @@ GitHub Pages only serves static files, so the Pages build bundles the real serve
 
 ## Brand
 
-Logo, colours, typography and voice are documented on the in-app **/brand** page; logo files, app icons and the social share image are in `web/public/brand/`. Fonts (Fraunces, Inter, IBM Plex Sans Arabic) are self-hosted via Fontsource. Demo portfolio photos are hotlinked from [Pexels](https://www.pexels.com/license/) (`server/photos.js`); a branded placeholder is shown if one fails to load.
+Logo, colours, typography and voice are documented on the in-app **/brand** page; logo files, app icons and the social share image are in `web/public/brand/`. Fonts (Alexandria for headlines and interface, IBM Plex Sans Arabic for body text; both cover Arabic) are self-hosted via Fontsource. Demo portfolio photos are hotlinked from [Pexels](https://www.pexels.com/license/) (`server/photos.js`); a branded placeholder is shown if one fails to load.
 
 ## Run it
 

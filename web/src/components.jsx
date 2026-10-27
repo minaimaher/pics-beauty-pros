@@ -141,21 +141,45 @@ export function Header() {
 
 export function Footer() {
   const t = useT();
+  const { user } = useApp();
   return (
     <footer className="site-footer">
-      <div className="container footer-row">
-        <div>
-          <Logo />
-          <p className="muted small">{t('Book vetted photographers, videographers, makeup artists and hair dressers in Egypt and Saudi Arabia.')}</p>
-          <p className="small"><Link to="/brand">{t('Brand guidelines')}</Link> · <span className="muted">{t('Photos: Pexels')}</span></p>
+      <div className="container">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <Logo />
+            <p>{t('Book vetted photographers, videographers, makeup artists and hair dressers in Egypt and Saudi Arabia.')}</p>
+          </div>
+          <nav aria-label={t('For customers')}>
+            <h2>{t('For customers')}</h2>
+            <ul>
+              <li><Link to="/search">{t('Browse vendors')}</Link></li>
+              <li><Link to="/search?view=map">{t('Vendors on the map')}</Link></li>
+              {user?.role === 'customer' ? <li><Link to="/bookings">{t('My bookings')}</Link></li> : <li><Link to="/login">{t('Sign in')}</Link></li>}
+            </ul>
+          </nav>
+          <nav aria-label={t('For vendors')}>
+            <h2>{t('For vendors')}</h2>
+            <ul>
+              <li><Link to="/join-vendor">{t('List your business')}</Link></li>
+              <li><Link to="/vendor">{t('Vendor dashboard')}</Link></li>
+            </ul>
+          </nav>
+          <nav aria-label="Pics Beauty Pros">
+            <h2>Pics Beauty Pros</h2>
+            <ul>
+              <li><Link to="/brand">{t('Brand guidelines')}</Link></li>
+              <li><a href="https://www.pexels.com/license/" target="_blank" rel="noreferrer">{t('Photos: Pexels')}</a></li>
+            </ul>
+          </nav>
         </div>
-        <div>
-          <p className="muted small">{t('Proof of concept · payments run in sandbox mode, no real money moves.')}</p>
+        <div className="footer-base">
+          <span>{t('Proof of concept. Payments run in sandbox mode and no real money moves.')}</span>
           {DEMO && (
-            <p className="muted small">
+            <span>
               {t('Demo mode: the app runs entirely in your browser and your changes are saved on this device only.')}{' '}
               <button className="btn-link small" onClick={async () => { if (confirm(t('Reset all demo data?'))) (await import('pbp-demo-backend')).resetDemo(); }}>{t('Reset demo data')}</button>
-            </p>
+            </span>
           )}
         </div>
       </div>
@@ -204,23 +228,25 @@ export function StatusBadge({ status }) {
 export function VendorCard({ v }) {
   const t = useT();
   const fmt = useFormat();
+  const place = [v.district && t(v.district), t(v.city)].filter(Boolean).join(', ');
+  const services = v.categories.map((c) => t(CATEGORY_LABEL[c])).join(t(' & '));
   return (
     <Link to={`/vendors/${v.id}`} className="vendor-card">
       <div className="vc-cover">
         {v.cover && <img src={v.cover} alt="" loading="lazy" />}
         <TierBadge tier={v.tier} />
       </div>
-      <Avatar src={v.avatar_url} name={v.owner_first_name || v.business_name} size={52} className="vc-avatar" />
       <div className="vc-body">
         <div className="vc-top">
+          <Avatar src={v.avatar_url} name={v.owner_first_name || v.business_name} size={30} className="vc-avatar" />
           <h3>{v.business_name}</h3>
-          <Stars value={v.rating_avg} count={v.rating_count} />
+          {v.rating_count > 0 && (
+            <span className="vc-rating" aria-label={`${v.rating_avg} / 5`}>
+              <span className="star-fill">★</span>{v.rating_avg.toFixed(1)} <span className="muted">({fmt.number(v.rating_count)})</span>
+            </span>
+          )}
         </div>
-        <p className="muted small">
-          {v.categories.map((c) => t(CATEGORY_LABEL[c])).join(' · ')} — {v.district ? `${t(v.district)}, ` : ''}{t(v.city)}
-          {v.distance_km != null && ` · ${fmt.number(v.distance_km)} ${t('km')}`}
-        </p>
-        <div className="tags">{v.style_tags.slice(0, 3).map((tag) => <span key={tag} className="tag">{tag}</span>)}</div>
+        <p className="vc-where">{services}, {place}{v.distance_km != null && ` (${fmt.number(v.distance_km)} ${t('km')})`}</p>
         {(v.from_price ?? v.min_price) != null && (
           <p className="vc-price">{t('From')} <strong>{fmt.money(v.from_price ?? v.min_price, v.currency)}</strong></p>
         )}

@@ -3,12 +3,12 @@ import { BrandMark } from '../components.jsx';
 import { POOLS, pexels } from '../../../server/photos.js';
 
 const COLORS = [
-  ['Plum Night', '#1F1830', 'Primary ink, headers, app icon background'],
-  ['Aubergine', '#5B2A5E', 'Links and secondary accents'],
-  ['Rose Gold', '#E8B4A0', 'Highlights on dark backgrounds, the mark'],
-  ['Terracotta', '#B7613F', 'Calls to action, "Pros" in the wordmark'],
-  ['Blush', '#F6D3C2', 'Soft fills, the lens ring'],
-  ['Ivory', '#FAF7F4', 'Page background']
+  ['Aubergine', '#2A1734', 'Text, buttons, footer and the app icon'],
+  ['Orchid', '#7A3F8C', 'Links, focus rings and "Pros" in the wordmark'],
+  ['Champagne', '#E9B9A2', 'Ratings and highlights on dark backgrounds'],
+  ['Blush', '#F6D3C2', 'The petals and the lens ring'],
+  ['Mist', '#F5F3F8', 'Quiet panels and placeholders'],
+  ['Porcelain', '#FFFFFF', 'Page background, so the photos carry the colour']
 ];
 
 const ASSETS = [
@@ -61,9 +61,9 @@ export function Brand() {
       <section className="brand-sec">
         <h2>Typography</h2>
         <div className="type-grid">
-          <div className="card"><p className="muted small">Display · Fraunces</p><p className="type-display">Moments, beautifully booked.</p></div>
-          <div className="card"><p className="muted small">Text · Inter</p><p className="type-text">Verified vendors, real portfolios, clear prices and live availability.</p></div>
-          <div className="card" dir="rtl"><p className="muted small">العربية · IBM Plex Sans Arabic</p><p className="type-ar">احجز مصورك وخبيرة المكياج في دقائق.</p></div>
+          <div className="card"><p className="muted small">Headlines and interface: Alexandria</p><p className="type-display">Moments, beautifully booked.</p></div>
+          <div className="card"><p className="muted small">Body text: IBM Plex Sans Arabic</p><p className="type-text">Verified vendors, real portfolios, clear prices and live availability.</p></div>
+          <div className="card" dir="rtl"><p className="muted small">العربية: Alexandria</p><p className="type-ar">احجز مصورك وخبيرة المكياج في دقائق.</p></div>
         </div>
       </section>
 
@@ -78,7 +78,7 @@ export function Brand() {
 
       <section className="brand-sec">
         <h2>Photography</h2>
-        <p className="muted">Real moments in natural or warm light: getting ready, first looks, behind the camera. Avoid heavy filters and staged stock poses. Demo photos are from Pexels.</p>
+        <p className="muted">Real moments in natural or warm light: getting ready, first looks, behind the camera. Pages stay white and quiet so the photos carry the colour. Demo photos are from Pexels.</p>
         <div className="photo-strip">{samples.map(([id, caption]) => <img key={id} src={pexels(id, 600)} alt={caption} loading="lazy" />)}</div>
       </section>
 

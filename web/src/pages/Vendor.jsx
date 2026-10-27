@@ -33,6 +33,7 @@ function Gallery({ media }) {
   if (!media.length) return null;
   return (
     <>
+      <div className="gallery-wrap">
       <div className="gallery">
         {media.slice(0, 5).map((m, i) => (
           <button key={m.id} className={'g-item' + (i === 0 ? ' big' : '')} onClick={() => setOpen(i)} aria-label={m.caption || t('Open image')}>
@@ -41,6 +42,8 @@ function Gallery({ media }) {
             {i === 4 && media.length > 5 && <span className="more">{t('+{n} more', { n: media.length - 5 })}</span>}
           </button>
         ))}
+      </div>
+      {media.length > 5 && <button className="btn btn-small show-all" onClick={() => setOpen(0)}>{t('Show all {n} photos', { n: media.length })}</button>}
       </div>
       {open != null && (
         <div className="lightbox" onClick={() => setOpen(null)} role="dialog" aria-modal="true">
@@ -100,10 +103,12 @@ export function VendorProfile({ id }) {
           <div className="profile-id">
             <Avatar src={v.avatar_url} name={v.owner_first_name || v.business_name} size={88} />
             <div>
-            <p className="eyebrow">{v.categories.map((c) => t(CATEGORY_LABEL[c])).join(' · ')}</p>
+            <p className="eyebrow">{v.categories.map((c) => t(CATEGORY_LABEL[c])).join(t(' & '))}</p>
             <h1>{v.business_name} <TierBadge tier={v.tier} /></h1>
             <p className="muted">
-              {v.district ? `${t(v.district)}, ` : ''}{t(v.city)} · <Stars value={v.rating_avg} count={v.rating_count} /> · {t('{n} years experience', { n: v.experience_years })}
+              <span>{v.district ? `${t(v.district)}, ` : ''}{t(v.city)}</span>
+              <Stars value={v.rating_avg} count={v.rating_count} />
+              <span>{t('{n} years experience', { n: v.experience_years })}</span>
               <span className="badge badge-verified">✓ {t('Verified vendor')}</span>
             </p>
             {v.owner_first_name && <p className="small owner-line">{t('Run by {name}', { name: v.owner_first_name })}</p>}
@@ -207,6 +212,7 @@ export function VendorProfile({ id }) {
           </div>
           <aside className="profile-side">
             <div className="card sticky">
+              {v.min_price != null && <p className="side-price"><span className="muted">{t('From')}</span> <strong>{fmt.money(v.min_price, v.currency)}</strong></p>}
               <h2 className="h-small">{t('Availability')}</h2>
               {cal && month ? <MonthCalendar month={month} days={cal.days} onMonth={setMonth} minMonth={meta?.today.slice(0, 7)} /> : <Loading />}
               <p className="small muted">{t('Working hours')}: {v.work_start}–{v.work_end}</p>

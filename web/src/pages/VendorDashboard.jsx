@@ -160,7 +160,7 @@ function Overview({ profile }) {
         )}
       </div>
       <div className="card">
-        <div className="section-head"><h2 className="h-small">{t('Bookings')}</h2><Link to="/vendor/bookings">{t('See all')} →</Link></div>
+        <div className="section-head"><h2 className="h-small">{t('Bookings')}</h2><Link to="/vendor/bookings">{t('See all')}</Link></div>
         <BookingsList asVendor />
       </div>
     </>

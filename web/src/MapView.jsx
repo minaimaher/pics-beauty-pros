@@ -35,6 +35,10 @@ export function MapView({ markers = [], center, zoom = 11, fit = true, activeId,
     L.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 19, subdomains: 'abcd' }).addTo(map.current);
     layer.current = L.layerGroup().addTo(map.current);
     map.current.on('click', (e) => pickRef.current?.(e.latlng.lat, e.latlng.lng));
+    // Price tags only once pins are far enough apart to read them.
+    const labels = () => el.current?.classList.toggle('labels-off', map.current.getZoom() < 12);
+    map.current.on('zoomend', labels);
+    labels();
     map.current.on('focus', () => map.current.scrollWheelZoom.enable());
     map.current.on('blur', () => map.current.scrollWheelZoom.disable());
     return () => map.current.remove();

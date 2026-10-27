@@ -42,9 +42,9 @@ function Overview() {
   return (
     <>
       <div className="stat-grid">
-        <Kpi label={t('Pending applications')} value={d.pendingApplications} sub={<Link to="/admin/vendors">{t('Review')} →</Link>} />
-        <Kpi label={t('Open disputes')} value={d.openDisputes} sub={<Link to="/admin/disputes">{t('Resolve')} →</Link>} />
-        <Kpi label={t('Flagged content')} value={d.flaggedItems} sub={<Link to="/admin/moderation">{t('Moderate')} →</Link>} />
+        <Kpi label={t('Pending applications')} value={d.pendingApplications} sub={<Link to="/admin/vendors">{t('Review')}</Link>} />
+        <Kpi label={t('Open disputes')} value={d.openDisputes} sub={<Link to="/admin/disputes">{t('Resolve')}</Link>} />
+        <Kpi label={t('Flagged content')} value={d.flaggedItems} sub={<Link to="/admin/moderation">{t('Moderate')}</Link>} />
         <Kpi label={t('Active customers (30d)')} value={d.activeCustomers30} sub={t('{n} registered', { n: d.customers })} />
         <Kpi label={t('Search → booking (30d)')} value={`${d.searchToBooking}%`} sub={t('{b} bookings / {s} searches', { b: d.bookings30, s: d.searches30 })} />
         <Kpi label={t('Completed this month')} value={d.completedThisMonth} />
