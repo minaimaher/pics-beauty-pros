@@ -28,31 +28,25 @@ function glyph(ch, x) {
   const p = serif.getPath(ch, x, BASE, SIZE);
   return { d: p.toPathData(2), box: p.getBoundingBox() };
 }
-// The B's stem is a face in profile looking left: its left edge runs from the neck up over the
-// chin, lips, nose and brow to the forehead. Points are relative to the glyph's left edge.
-const PROFILE = [
-  [52, 640],
-  ['C', 50, 622, 47, 604, 44, 594], ['C', 38, 590, 30, 586, 27, 578], ['C', 24, 572, 25, 564, 30, 560],
-  ['C', 33, 558, 34, 556, 33, 554], ['C', 28, 553, 25, 549, 26, 545], ['C', 27, 543, 30, 542, 32, 541],
-  ['C', 27, 539, 23, 535, 24, 531], ['C', 25, 527, 29, 525, 31, 523], ['C', 26, 521, 14, 518, 8, 514],
-  ['C', 3, 511, 3, 505, 7, 502], ['C', 16, 490, 26, 474, 30, 458], ['C', 31, 452, 30, 446, 28, 441],
-  ['C', 25, 434, 24, 424, 26, 414], ['C', 30, 384, 38, 348, 50, 320], ['C', 52, 315, 55, 311, 60, 310]
-];
+// The B carries a woman's profile in negative space: its lower bowl is opened into a face
+// looking right, and the lower stem becomes a sweep of hair. Points are relative to the glyph's
+// left edge; y is absolute.
+const FACE = `M97.5 476 L176 476
+  C181 486 184 496 188 506 C192 511 196 514 196 518 C193 522 186 526 179 530 C178 534 179 538 177 541
+  C181 543 182 546 179 549 C177 551 177 553 180 556 C181 560 178 563 173 564 C172 569 170 574 166 578
+  C160 584 156 590 156 600 C152 612 132 618 110 620 C88 622 70 630 58 650 L-10 650 L-10 626
+  C30 626 66 590 84 540 C92 516 96 496 97.5 476 Z`;
+const HAIR = `M101 482 C124 494 136 520 132 550 C128 580 108 606 78 628 C96 602 108 572 110 544 C111 520 107 498 101 482 Z`;
 function faceB(x) {
-  const cmds = serif.getPath('B', x, BASE, SIZE).commands;
+  const path = serif.getPath('B', x, BASE, SIZE);
+  const cmds = path.commands;
   const left = cmds[1].x; // left edge of the serifs
-  const top = cmds.findIndex((c, i) => i > 1 && c.type === 'L' && c.y === cmds[7].y && c.x > left + 100);
-  const pt = (n) => (+n).toFixed(1);
-  let d = `M${pt(cmds[0].x)} ${pt(cmds[0].y)}`;
-  for (const q of PROFILE) {
-    if (q[0] === 'C') d += `C${pt(left + q[1])} ${pt(q[2])} ${pt(left + q[3])} ${pt(q[4])} ${pt(left + q[5])} ${pt(q[6])}`;
-    else d += `L${pt(left + q[0])} ${pt(q[1])}`;
-  }
-  const rest = new opentype.Path();
-  rest.commands = cmds.slice(top);
-  d += rest.toPathData(2).replace(/^M/, 'L');
-  const box = serif.getPath('B', x, BASE, SIZE).getBoundingBox();
-  return { d, box, left };
+  // Keep the outer contour and the upper counter; the lower counter is replaced by the face.
+  const starts = cmds.map((c, i) => (c.type === 'M' ? i : -1)).filter((i) => i >= 0);
+  const keep = new opentype.Path();
+  keep.commands = [...cmds.slice(0, starts[1]), ...cmds.slice(starts[2])];
+  const rel = (d) => d.replace(/(-?[\d.]+) (-?[\d.]+)/g, (_, px, py) => `${(left + +px).toFixed(1)} ${py}`);
+  return { d: keep.toPathData(2), box: path.getBoundingBox(), left, face: rel(FACE), hair: rel(HAIR) };
 }
 const p1 = glyph('P', 0);
 const bx = p1.box.x2 - 8;
@@ -76,16 +70,6 @@ const cam = (ink, cut) => `<g transform="translate(227 500) scale(.8) translate(
 <circle cx="213" cy="486" r="7" fill="#fff" fill-opacity=".85"/>
 <rect x="120" y="456" width="26" height="10" rx="3" fill="url(#pbp-gold)"/></g>`;
 
-// Lips and a closed, lashed eye on the B's face; drawn in the letters' coordinates.
-const face = () => { const l = b.left; const x = (n) => X(l + n); return `
-<path fill="#B9675E" d="M${x(31)} 523 C${x(29)} 525 ${x(25)} 527 ${x(24)} 531 C${x(23)} 535 ${x(27)} 539 ${x(32)} 541 C${x(30)} 542 ${x(27)} 543 ${x(26)} 545 C${x(25)} 549 ${x(28)} 553 ${x(33)} 554 C${x(38)} 553 ${x(42)} 549 ${x(43)} 545 C${x(42)} 538 ${x(38)} 527 ${x(31)} 523 Z"/>
-<path fill="none" stroke="#8E4A45" stroke-width="1.8" stroke-linecap="round" d="M${x(31)} 541 C${x(35)} 541.5 ${x(39)} 542.5 ${x(43)} 544"/>
-<path fill="none" stroke="${C.ink}" stroke-width="2.2" stroke-linecap="round" d="M${x(48)} 429 C${x(56)} 423 ${x(69)} 422 ${x(80)} 427"/>
-<path fill="none" stroke="${C.ink}" stroke-width="3.6" stroke-linecap="round" d="M${x(50)} 448 C${x(57)} 456 ${x(71)} 457 ${x(80)} 448"/>
-<g stroke="${C.ink}" stroke-width="2.3" stroke-linecap="round" fill="none">
-  <path d="M${x(52)} 451 l-5 6"/><path d="M${x(57)} 454 l-3 8"/><path d="M${x(63)} 455.5 l-1 8"/><path d="M${x(69)} 455.5 l1 8"/><path d="M${x(75)} 453 l3 7"/>
-</g>`; };
-
 // Makeup brush leaning across the second P.
 const brush = (ink, cut) => `
 <g transform="translate(${X(sx + 650)} 612) rotate(24) scale(.8)">
@@ -100,7 +84,7 @@ const brush = (ink, cut) => `
   <path d="M-12 -170 h24" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
 </g>`;
 
-const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><path d="${b.d}" fill="url(#pbp-rose)"/><path d="${p2.d}" fill="${ink}"/>${face()}</g>`;
+const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><mask id="pbp-bface" maskUnits="userSpaceOnUse" x="${X(b.left - 40)}" y="280" width="400" height="400"><rect x="${X(b.left - 40)}" y="280" width="400" height="400" fill="#fff"/><path d="${b.face}" fill="#000"/><path d="${b.hair}" fill="#fff"/></mask><path d="${b.d}" fill="url(#pbp-rose)" mask="url(#pbp-bface)"/><path d="${p2.d}" fill="${ink}"/></g>`;
 // `cut` is the background colour: it separates the camera, face and brush from the letters.
 const monogram = (ink, cut = '#FFFFFF') => letters(ink) + cam(ink, cut) + brush(ink, cut);
 

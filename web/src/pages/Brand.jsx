@@ -29,7 +29,7 @@ export function Brand() {
 
       <section className="brand-sec">
         <h2>Logo</h2>
-        <p className="muted">The logo is a <strong>PBP monogram</strong> that shows the whole marketplace in three letters: the first <strong>P</strong> carries a camera (photographers and videographers), the rose-gold <strong>B</strong> is a face in profile with closed, lashed eyes and lips (makeup and hair), and the last <strong>P</strong> is crossed by a makeup brush. The full badge sets the monogram in a gold double ring above the wordmark.</p>
+        <p className="muted">The logo is a <strong>PBP monogram</strong> that shows the whole marketplace in three letters: the first <strong>P</strong> carries a camera (photographers and videographers), the rose-gold <strong>B</strong> holds a woman’s profile in negative space, her hair sweeping down to form the stem (makeup and hair), and the last <strong>P</strong> is crossed by a makeup brush. The full badge sets the monogram in a gold double ring above the wordmark.</p>
         <div className="logo-grid">
           <div className="logo-tile light"><img src={asset('logo-badge.svg')} alt="Pics Beauty Pros badge" width="260" height="260" /></div>
           <div className="logo-tile dark"><img src={asset('logo-badge-on-dark.svg')} alt="Pics Beauty Pros badge on a dark background" width="260" height="260" /></div>
