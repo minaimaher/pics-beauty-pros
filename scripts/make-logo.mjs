@@ -28,9 +28,35 @@ function glyph(ch, x) {
   const p = serif.getPath(ch, x, BASE, SIZE);
   return { d: p.toPathData(2), box: p.getBoundingBox() };
 }
+// The B's stem is a face in profile looking left: its left edge runs from the neck up over the
+// chin, lips, nose and brow to the forehead. Points are relative to the glyph's left edge.
+const PROFILE = [
+  [52, 640],
+  ['C', 50, 622, 47, 604, 44, 594], ['C', 38, 590, 30, 586, 27, 578], ['C', 24, 572, 25, 564, 30, 560],
+  ['C', 33, 558, 34, 556, 33, 554], ['C', 28, 553, 25, 549, 26, 545], ['C', 27, 543, 30, 542, 32, 541],
+  ['C', 27, 539, 23, 535, 24, 531], ['C', 25, 527, 29, 525, 31, 523], ['C', 26, 521, 14, 518, 8, 514],
+  ['C', 3, 511, 3, 505, 7, 502], ['C', 16, 490, 26, 474, 30, 458], ['C', 31, 452, 30, 446, 28, 441],
+  ['C', 25, 434, 24, 424, 26, 414], ['C', 30, 384, 38, 348, 50, 320], ['C', 52, 315, 55, 311, 60, 310]
+];
+function faceB(x) {
+  const cmds = serif.getPath('B', x, BASE, SIZE).commands;
+  const left = cmds[1].x; // left edge of the serifs
+  const top = cmds.findIndex((c, i) => i > 1 && c.type === 'L' && c.y === cmds[7].y && c.x > left + 100);
+  const pt = (n) => (+n).toFixed(1);
+  let d = `M${pt(cmds[0].x)} ${pt(cmds[0].y)}`;
+  for (const q of PROFILE) {
+    if (q[0] === 'C') d += `C${pt(left + q[1])} ${pt(q[2])} ${pt(left + q[3])} ${pt(q[4])} ${pt(left + q[5])} ${pt(q[6])}`;
+    else d += `L${pt(left + q[0])} ${pt(q[1])}`;
+  }
+  const rest = new opentype.Path();
+  rest.commands = cmds.slice(top);
+  d += rest.toPathData(2).replace(/^M/, 'L');
+  const box = serif.getPath('B', x, BASE, SIZE).getBoundingBox();
+  return { d, box, left };
+}
 const p1 = glyph('P', 0);
-const bx = p1.box.x2 - 18;
-const b = glyph('B', bx);
+const bx = p1.box.x2 - 8;
+const b = faceB(bx);
 const p2 = glyph('P', b.box.x2 - 12);
 const width = p2.box.x2 - p1.box.x1;
 const shift = 500 - (p1.box.x1 + width / 2); // centre the monogram on x = 500
@@ -50,15 +76,15 @@ const cam = (ink, cut) => `<g transform="translate(227 500) scale(.8) translate(
 <circle cx="213" cy="486" r="7" fill="#fff" fill-opacity=".85"/>
 <rect x="120" y="456" width="26" height="10" rx="3" fill="url(#pbp-gold)"/></g>`;
 
-// A face in profile carved into the B's stem, looking left, with a closed, lashed eye.
-const face = (ink, cut, eye = cut === '#FFFFFF' ? C.ink : C.rose1) => `
-<path fill="${cut}" d="M455 404 C449 418 446 432 445 446 C444 462 436 474 426 486 C420 494 414 502 412 508 C416 514 424 516 430 519 C426 526 422 531 423 536 C427 540 431 543 431 546 C427 550 421 555 422 561 C426 572 434 580 436 590 C440 606 448 624 456 641 L470 641 L470 470 L456 470 L456 404 Z"/>
-<path fill="url(#pbp-rose)" d="M425 537 C430 535 436 537 438 541 C436 545 430 547 425 546 C428 544 429 540 425 537 Z"/>
-<path fill="#C27B70" d="M422 549 C428 547 436 548 439 552 C436 558 428 561 423 559 C425 556 424 552 422 549 Z"/>
-<path fill="none" stroke="${eye}" stroke-width="4.5" stroke-linecap="round" d="M462 478 C474 490 494 492 508 480"/>
-<g stroke="${eye}" stroke-width="3" stroke-linecap="round" fill="none">
-  <path d="M466 484 l-5 9"/><path d="M473 488 l-3 11"/><path d="M481 490 l-1 12"/><path d="M489 490 l1 12"/><path d="M497 488 l3 11"/><path d="M504 484 l5 9"/>
-</g>`;
+// Lips and a closed, lashed eye on the B's face; drawn in the letters' coordinates.
+const face = () => { const l = b.left; const x = (n) => X(l + n); return `
+<path fill="#B9675E" d="M${x(31)} 523 C${x(29)} 525 ${x(25)} 527 ${x(24)} 531 C${x(23)} 535 ${x(27)} 539 ${x(32)} 541 C${x(30)} 542 ${x(27)} 543 ${x(26)} 545 C${x(25)} 549 ${x(28)} 553 ${x(33)} 554 C${x(38)} 553 ${x(42)} 549 ${x(43)} 545 C${x(42)} 538 ${x(38)} 527 ${x(31)} 523 Z"/>
+<path fill="none" stroke="#8E4A45" stroke-width="1.8" stroke-linecap="round" d="M${x(31)} 541 C${x(35)} 541.5 ${x(39)} 542.5 ${x(43)} 544"/>
+<path fill="none" stroke="${C.ink}" stroke-width="2.2" stroke-linecap="round" d="M${x(48)} 429 C${x(56)} 423 ${x(69)} 422 ${x(80)} 427"/>
+<path fill="none" stroke="${C.ink}" stroke-width="3.6" stroke-linecap="round" d="M${x(50)} 448 C${x(57)} 456 ${x(71)} 457 ${x(80)} 448"/>
+<g stroke="${C.ink}" stroke-width="2.3" stroke-linecap="round" fill="none">
+  <path d="M${x(52)} 451 l-5 6"/><path d="M${x(57)} 454 l-3 8"/><path d="M${x(63)} 455.5 l-1 8"/><path d="M${x(69)} 455.5 l1 8"/><path d="M${x(75)} 453 l3 7"/>
+</g>`; };
 
 // Makeup brush leaning across the second P.
 const brush = (ink, cut) => `
@@ -74,9 +100,9 @@ const brush = (ink, cut) => `
   <path d="M-12 -170 h24" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
 </g>`;
 
-const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><path d="${b.d}" fill="url(#pbp-rose)"/><path d="${p2.d}" fill="${ink}"/></g>`;
+const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><path d="${b.d}" fill="url(#pbp-rose)"/><path d="${p2.d}" fill="${ink}"/>${face()}</g>`;
 // `cut` is the background colour: it separates the camera, face and brush from the letters.
-const monogram = (ink, cut = '#FFFFFF') => letters(ink) + cam(ink, cut) + face(ink, cut) + brush(ink, cut);
+const monogram = (ink, cut = '#FFFFFF') => letters(ink) + cam(ink, cut) + brush(ink, cut);
 
 // Tracked capitals for the wordmark: PICS (ink) BEAUTY (rose) PROS (ink).
 function wordmark(ink, y, size = 50, track = 0.36) {
