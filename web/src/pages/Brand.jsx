@@ -1,19 +1,19 @@
 import { useT, BASE } from '../lib.jsx';
-import { BrandMark } from '../components.jsx';
 import { POOLS, pexels } from '../../../server/photos.js';
 
 const COLORS = [
   ['Aubergine', '#2A1734', 'Text, buttons, footer and the app icon'],
   ['Orchid', '#7A3F8C', 'Links, focus rings and "Pros" in the wordmark'],
   ['Champagne', '#E9B9A2', 'Ratings and highlights on dark backgrounds'],
-  ['Blush', '#F6D3C2', 'The petals and the lens ring'],
+  ['Rose gold', '#C27B70', 'The B and its face profile, "Beauty" in the wordmark'],
+  ['Gold', '#B9853F', 'The camera lens, brush ferrule and the badge ring'],
   ['Mist', '#F5F3F8', 'Quiet panels and placeholders'],
   ['Porcelain', '#FFFFFF', 'Page background, so the photos carry the colour']
 ];
 
 const ASSETS = [
-  ['logo.svg', 'Logo (light backgrounds)'], ['logo.png', 'Logo PNG'], ['logo-on-dark.svg', 'Logo (dark backgrounds)'],
-  ['logo-on-dark.png', 'Logo on dark PNG'], ['mark.svg', 'Mark only'], ['mark-app.svg', 'App icon SVG'],
+  ['logo-badge.svg', 'Badge logo'], ['logo-badge.png', 'Badge logo PNG'], ['logo-badge-on-dark.svg', 'Badge for dark backgrounds'],
+  ['pbp-mark.svg', 'Monogram'], ['pbp-mark-light.svg', 'Monogram (light, for dark backgrounds)'], ['mark-app.svg', 'App icon SVG'],
   ['icon-512.png', 'App icon 512 px'], ['og-image.png', 'Social share image']
 ];
 
@@ -29,18 +29,19 @@ export function Brand() {
 
       <section className="brand-sec">
         <h2>Logo</h2>
-        <p className="muted">The mark is an <strong>aperture bloom</strong>: six petals arranged like the blades of a camera aperture, opening around a lens. It joins the two sides of the marketplace — the camera (photography and film) and the bloom (makeup and hair).</p>
+        <p className="muted">The logo is a <strong>PBP monogram</strong> that shows the whole marketplace in three letters: the first <strong>P</strong> carries a camera (photographers and videographers), the rose-gold <strong>B</strong> is a face in profile with closed, lashed eyes and lips (makeup and hair), and the last <strong>P</strong> is crossed by a makeup brush. The full badge sets the monogram in a gold double ring above the wordmark.</p>
         <div className="logo-grid">
-          <div className="logo-tile light"><BrandMark size={56} /><span className="wordmark big">Pics Beauty <b>Pros</b></span></div>
-          <div className="logo-tile dark"><BrandMark size={56} /><span className="wordmark big">Pics Beauty <b>Pros</b></span></div>
-          <div className="logo-tile light" dir="rtl"><BrandMark size={56} /><span className="wordmark big ar">بيكس بيوتي <b>برو</b></span></div>
-          <div className="logo-tile icons"><BrandMark size={96} app /><BrandMark size={48} app /><BrandMark size={24} app /></div>
+          <div className="logo-tile light"><img src={asset('logo-badge.svg')} alt="Pics Beauty Pros badge" width="260" height="260" /></div>
+          <div className="logo-tile dark"><img src={asset('logo-badge-on-dark.svg')} alt="Pics Beauty Pros badge on a dark background" width="260" height="260" /></div>
+          <div className="logo-tile light stack"><img src={asset('pbp-mark.svg')} alt="PBP monogram" width="240" height="112" /><span className="wordmark big">Pics <b>Beauty</b> Pros</span></div>
+          <div className="logo-tile dark stack" dir="rtl"><img src={asset('pbp-mark-light.svg')} alt="PBP monogram, light" width="240" height="112" /><span className="wordmark big ar">بيكس <b>بيوتي</b> برو</span></div>
+          <div className="logo-tile icons"><img src={asset('mark-app.svg')} alt="App icon" width="96" height="96" /><img src={asset('mark-app.svg')} alt="" width="48" height="48" /><img src={`${BASE}/favicon.svg`} alt="Favicon" width="24" height="24" /></div>
         </div>
         <ul className="rules">
           <li>Keep clear space around the logo of at least half the mark’s height.</li>
-          <li>Use the mark on its own (or the app icon) below 120 px wide; don’t shrink the wordmark under 16 px tall.</li>
-          <li>Don’t recolour the petals, add effects, or set the wordmark in another typeface.</li>
-          <li>On photos, place the light version over a dark overlay of at least 60% Plum Night.</li>
+          <li>Use the monogram on its own (or the app icon) below 120 px wide; use the full badge only from 160 px wide.</li>
+          <li>Don’t recolour the monogram, separate the camera, face or brush from their letters, add effects, or set the wordmark in another typeface.</li>
+          <li>On photos, place the light version over a dark overlay of at least 60% Aubergine, using the light monogram.</li>
         </ul>
       </section>
 

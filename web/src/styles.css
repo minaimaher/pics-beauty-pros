@@ -91,8 +91,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .header-row { display: flex; align-items: center; gap: 20px; height: 68px; }
 .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); white-space: nowrap; }
 .logo:hover { text-decoration: none; }
-.logo b, .wordmark b { color: var(--orchid); font-weight: 500; }
-.wordmark { font-family: var(--font-display); font-weight: 500; font-size: 1.15rem; letter-spacing: -.03em; }
+.logo b, .wordmark b { color: #C27B70; font-weight: inherit; }
+.brand-mark { display: block; height: 34px; width: auto; }
+.wordmark { font-family: var(--font-display); font-weight: 400; font-size: .92rem; letter-spacing: .3em; text-transform: uppercase; }
+.wordmark.ar { letter-spacing: 0; font-size: 1.05rem; font-weight: 500; }
+@media (max-width: 420px) { .logo .wordmark { display: none; } }
 .main-nav { display: flex; align-items: center; gap: 22px; margin-inline-start: auto; }
 .main-nav > a { color: var(--ink); font-weight: 500; font-size: .95rem; }
 .main-nav > a.btn { color: #fff; }
@@ -126,7 +129,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .footer-grid h2 { font-size: .95rem; color: #fff; letter-spacing: 0; margin-bottom: .8em; }
 .footer-grid ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: .92rem; }
 .footer-brand .logo { color: #fff; }
-.footer-brand .wordmark b { color: var(--champagne); }
+.footer-brand .wordmark b { color: #EBB7A8; }
 .footer-brand p { max-width: 38ch; margin-top: 12px; color: #c7bccf; }
 .footer-base { border-top: 1px solid rgba(255, 255, 255, .14); margin-top: 36px; padding-top: 18px; display: flex; gap: 12px 24px; flex-wrap: wrap; justify-content: space-between; font-size: .82rem; color: #b5a9bf; }
 .footer-base .btn-link { color: var(--champagne); }
@@ -536,9 +539,11 @@ td.end { flex-direction: row; justify-content: flex-end; align-items: center; ga
 .logo-tile { display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 150px; border-radius: var(--radius); border: 1px solid var(--line); padding: 24px; }
 .logo-tile.light { background: #fff; }
 .logo-tile.dark { background: var(--ink); color: #faf7f4; }
-.logo-tile.dark .wordmark b { color: var(--accent); }
+.logo-tile.dark .wordmark b { color: #EBB7A8; }
+.logo-tile img { max-width: 100%; height: auto; }
 .logo-tile.icons { background: var(--mist); gap: 22px; }
-.wordmark.big { font-size: 2rem; }
+.logo-tile.stack { flex-direction: column; }
+.wordmark.big { font-size: 1.3rem; }
 .wordmark.ar { font-family: var(--font-display); }
 .rules { color: var(--ink-2); padding-inline-start: 18px; }
 .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
