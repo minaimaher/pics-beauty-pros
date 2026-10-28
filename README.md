@@ -6,9 +6,9 @@ Everything runs locally with real storage and business logic — only the paymen
 
 ## Live demo
 
-**https://minaimaher.github.io/pics-beauty-pros/**
+**https://picsbeautypros.com/**
 
-GitHub Pages only serves static files, so the Pages build bundles the real server routes and services into the page and runs them on SQLite compiled to WebAssembly (`vite build --mode pages`, see `web/src/demo/`). Each visitor gets their own demo data, saved in their browser; use **Reset demo data** in the footer to start over. Emailed one-time codes are shown on screen. The site is rebuilt from `main` by `.github/workflows/pages.yml`, or manually with `npm run build:pages` and pushing `web/dist-pages` to the `gh-pages` branch.
+GitHub Pages only serves static files, so the Pages build bundles the real server routes and services into the page and runs them on SQLite compiled to WebAssembly (`vite build --mode pages`, see `web/src/demo/`). Each visitor gets their own demo data, saved in their browser; use **Reset demo data** in the footer to start over. Emailed one-time codes are shown on screen. The site is hosted free on GitHub Pages with the custom domain `picsbeautypros.com` (`CNAME` is written by `scripts/pages-postbuild.js`; DNS records are at the registrar). It is rebuilt from `main` by `.github/workflows/pages.yml`, or manually with `npm run build:pages` and pushing `web/dist-pages` to the `gh-pages` branch.
 
 ## Brand
 

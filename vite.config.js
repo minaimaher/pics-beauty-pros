@@ -4,13 +4,13 @@ import { fileURLToPath } from 'node:url';
 
 const shim = (name) => fileURLToPath(new URL(`./web/src/demo/shims/${name}.js`, import.meta.url));
 
-// `vite build --mode pages` produces the static GitHub Pages demo: the server code is bundled
+// `vite build --mode pages` produces the static demo served by GitHub Pages at picsbeautypros.com: the server code is bundled
 // into the page and runs on SQLite/WebAssembly, with Node-only modules swapped for shims.
 export default defineConfig(({ mode }) => {
   const pages = mode === 'pages';
   return {
     root: 'web',
-    base: pages ? process.env.PAGES_BASE || '/pics-beauty-pros/' : '/',
+    base: pages ? process.env.PAGES_BASE || '/' : '/',
     plugins: [react()],
     build: { outDir: pages ? 'dist-pages' : 'dist', emptyOutDir: true, target: 'es2022' },
     define: pages
@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
           'process.env.PBP_DB': 'undefined',
           'process.env.PBP_JWT_SECRET': 'undefined',
           'process.env.PBP_DEMO': '"1"',
-          'process.env.PBP_PHOTO_BASE': JSON.stringify((process.env.PAGES_BASE || '/pics-beauty-pros/') + 'photos')
+          'process.env.PBP_PHOTO_BASE': JSON.stringify((process.env.PAGES_BASE || '/') + 'photos')
         }
       : { 'process.env.PBP_PHOTO_BASE': 'undefined' },
     resolve: {

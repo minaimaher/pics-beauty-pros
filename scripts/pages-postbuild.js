@@ -4,3 +4,5 @@ import fs from 'node:fs';
 const dir = 'web/dist-pages';
 fs.copyFileSync(`${dir}/index.html`, `${dir}/404.html`);
 fs.writeFileSync(`${dir}/.nojekyll`, '');
+// Custom domain for GitHub Pages (DNS is set at the registrar).
+fs.writeFileSync(`${dir}/CNAME`, 'picsbeautypros.com\n');
