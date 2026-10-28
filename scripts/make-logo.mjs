@@ -37,7 +37,7 @@ const P_ART = art('p-face.path', 1440, 2316);
 function artGlyph(a, x) {
   const k = (BASE - 310) / (a.h - 2 * a.m); // cap height: y 310 to the baseline
   const tx = x - a.m * k, ty = 310 - a.m * k;
-  return { transform: `translate(${X(tx)} ${X(ty)}) scale(${k.toFixed(5)})`, d: a.d, box: { x1: x, x2: x + (a.w - 2 * a.m) * k } };
+  return { k, transform: `translate(${X(tx)} ${X(ty)}) scale(${k.toFixed(5)})`, d: a.d, box: { x1: x, x2: x + (a.w - 2 * a.m) * k } };
 }
 // The first P is a camera: its bowl is the camera body, with a lens ring and a viewfinder on top.
 const P_CAM = {
@@ -46,9 +46,11 @@ const P_CAM = {
   box: { x1: 0, x2: 250 }
 };
 const p1 = P_CAM;
-const bx = p1.box.x2 + 14;
+// The letters interlock: the B overlaps both Ps, with a thin gap cut around it (GAP units).
+const OVERLAP_P1 = 42, OVERLAP_P2 = 26, GAP = 9;
+const bx = p1.box.x2 - OVERLAP_P1;
 const b = artGlyph(B_ART, bx);
-const p2 = artGlyph(P_ART, b.box.x2 + 14);
+const p2 = artGlyph(P_ART, b.box.x2 - OVERLAP_P2);
 const width = p2.box.x2 - p1.box.x1;
 const shift = 500 - (p1.box.x1 + width / 2); // centre the monogram on x = 500
 
@@ -56,7 +58,11 @@ const sx = shift; // letters are drawn at x + shift
 const MARK_VIEW = `${X(500 - width / 2 - 14)} 296 ${X(width + 28)} 358`;
 console.log('mark viewBox', MARK_VIEW);
 
-const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><mask id="pbp-pcam" maskUnits="userSpaceOnUse" x="-20" y="290" width="300" height="370"><rect x="-20" y="290" width="300" height="370" fill="#fff"/>${p1.holes}</mask><path d="${p1.body}" fill="${ink}" mask="url(#pbp-pcam)"/><path d="${b.d}" transform="${b.transform}" fill="url(#pbp-rose)" fill-rule="evenodd"/><path d="${p2.d}" transform="${p2.transform}" fill="${ink}" fill-rule="evenodd"/></g>`;
+const letters = (ink) => `<g transform="translate(${X(sx)} 0)">
+<mask id="pbp-pcam" maskUnits="userSpaceOnUse" x="-20" y="290" width="300" height="370"><rect x="-20" y="290" width="300" height="370" fill="#fff"/>${p1.holes}</mask>
+<mask id="pbp-weave" maskUnits="userSpaceOnUse" x="-100" y="250" width="1100" height="450"><rect x="-100" y="250" width="1100" height="450" fill="#fff"/><path d="${b.d}" transform="${b.transform}" fill="#000" stroke="#000" stroke-width="${X((2 * GAP) / b.k)}" stroke-linejoin="round"/></mask>
+<g mask="url(#pbp-weave)"><path d="${p1.body}" fill="${ink}" mask="url(#pbp-pcam)"/><path d="${p2.d}" transform="${p2.transform}" fill="${ink}" fill-rule="evenodd"/></g>
+<path d="${b.d}" transform="${b.transform}" fill="url(#pbp-rose)" fill-rule="evenodd"/></g>`;
 const monogram = (ink) => letters(ink);
 
 // Tracked capitals for the wordmark: PICS (ink) BEAUTY (rose) PROS (ink).

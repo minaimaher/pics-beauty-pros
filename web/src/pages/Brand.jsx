@@ -29,12 +29,12 @@ export function Brand() {
 
       <section className="brand-sec">
         <h2>Logo</h2>
-        <p className="muted">The logo is a <strong>PBP monogram</strong> that shows the whole marketplace in three letters: the first <strong>P</strong> is a camera, its bowl the body with a lens and viewfinder (photographers and videographers); the rose-gold <strong>B</strong> frames a woman’s face in a sweep of hair, with two leaves; and the last <strong>P</strong> frames a face with a hair bun inside its bowl (makeup and hair professionals). The full badge sets the monogram in a gold double ring above the wordmark.</p>
+        <p className="muted">The logo is a <strong>PBP monogram</strong> that shows the whole marketplace in three letters: the first <strong>P</strong> is a camera, its bowl the body with a lens and viewfinder (photographers and videographers); the rose-gold <strong>B</strong> frames a woman’s face in a sweep of hair, with two leaves; and the last <strong>P</strong> frames a face with a hair bun inside its bowl (makeup and hair professionals). The three letters interlock into one mark, the B woven over both Ps. The full badge sets the monogram in a gold double ring above the wordmark.</p>
         <div className="logo-grid">
           <div className="logo-tile light"><img src={asset('logo-badge.svg')} alt="Pics Beauty Pros badge" width="260" height="260" /></div>
           <div className="logo-tile dark"><img src={asset('logo-badge-on-dark.svg')} alt="Pics Beauty Pros badge on a dark background" width="260" height="260" /></div>
-          <div className="logo-tile light stack"><img src={asset('pbp-mark.svg')} alt="PBP monogram" width="240" height="100" /><span className="wordmark big">Pics <b>Beauty</b> Pros</span></div>
-          <div className="logo-tile dark stack" dir="rtl"><img src={asset('pbp-mark-light.svg')} alt="PBP monogram, light" width="240" height="100" /><span className="wordmark big ar">بيكس <b>بيوتي</b> برو</span></div>
+          <div className="logo-tile light stack"><img src={asset('pbp-mark.svg')} alt="PBP monogram" width="240" height="113" /><span className="wordmark big">Pics <b>Beauty</b> Pros</span></div>
+          <div className="logo-tile dark stack" dir="rtl"><img src={asset('pbp-mark-light.svg')} alt="PBP monogram, light" width="240" height="113" /><span className="wordmark big ar">بيكس <b>بيوتي</b> برو</span></div>
           <div className="logo-tile icons"><img src={asset('mark-app.svg')} alt="App icon" width="96" height="96" /><img src={asset('mark-app.svg')} alt="" width="48" height="48" /><img src={`${BASE}/favicon.svg`} alt="Favicon" width="24" height="24" /></div>
         </div>
         <ul className="rules">
