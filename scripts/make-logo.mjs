@@ -24,38 +24,27 @@ const defs = `<defs>
 
 // Monogram glyphs: P (ink), B (rose gold), P (ink), sitting on one baseline.
 const SIZE = 440, BASE = 640;
+const X = (x) => +(x).toFixed(1);
 function glyph(ch, x) {
   const p = serif.getPath(ch, x, BASE, SIZE);
   return { d: p.toPathData(2), box: p.getBoundingBox() };
 }
-// The B carries a woman's profile in negative space: its lower bowl is opened into a face
-// looking right, and the lower stem becomes a sweep of hair. Points are relative to the glyph's
-// left edge; y is absolute.
-const FACE = `M97.5 476 L176 476
-  C181 486 184 496 188 506 C192 511 196 514 196 518 C193 522 186 526 179 530 C178 534 179 538 177 541
-  C181 543 182 546 179 549 C177 551 177 553 180 556 C181 560 178 563 173 564 C172 569 170 574 166 578
-  C160 584 156 590 156 600 C152 612 132 618 110 620 C88 622 70 630 58 650 L-10 650 L-10 626
-  C30 626 66 590 84 540 C92 516 96 496 97.5 476 Z`;
-const HAIR = `M101 482 C124 494 136 520 132 550 C128 580 108 606 78 628 C96 602 108 572 110 544 C111 520 107 498 101 482 Z`;
+// The B is the supplied "woman in profile" B artwork, traced to a vector path
+// (scripts/brand/b-face.path, 1380 x 1746 units with a 36-unit margin) and scaled to cap height.
+const B_ART = { d: fs.readFileSync(new URL('./brand/b-face.path', import.meta.url), 'utf8').trim(), w: 1380, h: 1746, m: 36 };
 function faceB(x) {
-  const path = serif.getPath('B', x, BASE, SIZE);
-  const cmds = path.commands;
-  const left = cmds[1].x; // left edge of the serifs
-  // Keep the outer contour and the upper counter; the lower counter is replaced by the face.
-  const starts = cmds.map((c, i) => (c.type === 'M' ? i : -1)).filter((i) => i >= 0);
-  const keep = new opentype.Path();
-  keep.commands = [...cmds.slice(0, starts[1]), ...cmds.slice(starts[2])];
-  const rel = (d) => d.replace(/(-?[\d.]+) (-?[\d.]+)/g, (_, px, py) => `${(left + +px).toFixed(1)} ${py}`);
-  return { d: keep.toPathData(2), box: path.getBoundingBox(), left, face: rel(FACE), hair: rel(HAIR) };
+  const k = (BASE - 310) / (B_ART.h - 2 * B_ART.m); // match the P's cap height (y 310 to the baseline)
+  const tx = x - B_ART.m * k, ty = 310 - B_ART.m * k;
+  const x2 = x + (B_ART.w - 2 * B_ART.m) * k;
+  return { transform: `translate(${X(tx)} ${X(ty)}) scale(${k.toFixed(5)})`, d: B_ART.d, box: { x1: x, x2 } };
 }
 const p1 = glyph('P', 0);
-const bx = p1.box.x2 - 8;
+const bx = p1.box.x2 + 6;
 const b = faceB(bx);
-const p2 = glyph('P', b.box.x2 - 12);
+const p2 = glyph('P', b.box.x2 + 2);
 const width = p2.box.x2 - p1.box.x1;
 const shift = 500 - (p1.box.x1 + width / 2); // centre the monogram on x = 500
 
-const X = (x) => +(x).toFixed(1);
 const sx = shift; // letters are drawn at x + shift
 
 // Camera sitting on the first P's stem, with a gold-rimmed lens.
@@ -84,7 +73,7 @@ const brush = (ink, cut) => `
   <path d="M-12 -170 h24" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
 </g>`;
 
-const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><mask id="pbp-bface" maskUnits="userSpaceOnUse" x="${X(b.left - 40)}" y="280" width="400" height="400"><rect x="${X(b.left - 40)}" y="280" width="400" height="400" fill="#fff"/><path d="${b.face}" fill="#000"/><path d="${b.hair}" fill="#fff"/></mask><path d="${b.d}" fill="url(#pbp-rose)" mask="url(#pbp-bface)"/><path d="${p2.d}" fill="${ink}"/></g>`;
+const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><path d="${b.d}" transform="${b.transform}" fill="url(#pbp-rose)" fill-rule="evenodd"/><path d="${p2.d}" fill="${ink}"/></g>`;
 // `cut` is the background colour: it separates the camera, face and brush from the letters.
 const monogram = (ink, cut = '#FFFFFF') => letters(ink) + cam(ink, cut) + brush(ink, cut);
 
