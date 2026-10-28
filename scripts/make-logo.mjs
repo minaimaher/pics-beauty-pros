@@ -32,7 +32,7 @@ function glyph(ch, x) {
 // The B ("woman in profile") and the second P (face inside the bowl) are supplied artwork, traced
 // to vector paths in scripts/brand/ (with a 36-unit margin) and scaled to the first P's cap height.
 const art = (file, w, h) => ({ d: fs.readFileSync(new URL(`./brand/${file}`, import.meta.url), 'utf8').trim(), w, h, m: 36 });
-const B_ART = art('b-face.path', 1380, 1746);
+const B_ART = art('b-face.path', 1752, 1650);
 const P_ART = art('p-face.path', 1440, 2316);
 function artGlyph(a, x) {
   const k = (BASE - 310) / (a.h - 2 * a.m); // cap height: y 310 to the baseline
@@ -41,12 +41,12 @@ function artGlyph(a, x) {
 }
 // The first P is a camera: its bowl is the camera body, with a lens ring and a viewfinder on top.
 const P_CAM = {
-  body: 'M0 640 L0 430 A100 100 0 0 1 100 330 L160 330 A90 90 0 0 1 250 420 L250 445 A90 90 0 0 1 160 535 L72 535 L72 632 A8 8 0 0 1 64 640 Z M176 312 L222 312 A7 7 0 0 1 229 319 L229 345 L169 345 L169 319 A7 7 0 0 1 176 312 Z',
-  holes: '<circle cx="170" cy="434" r="58" fill="#000"/><circle cx="170" cy="434" r="42" fill="#fff"/><rect x="186" y="320" width="28" height="10" rx="3" fill="#000"/>',
+  body: 'M0 640 L0 430 A100 100 0 0 1 100 330 L138 330 A112.5 112.5 0 0 1 138 555 L72 555 L72 632 A8 8 0 0 1 64 640 Z M179 312 L221 312 A7 7 0 0 1 228 319 L228 380 L172 380 L172 319 A7 7 0 0 1 179 312 Z',
+  holes: '<circle cx="138" cy="442" r="60" fill="#000"/><circle cx="138" cy="442" r="43" fill="#fff"/><rect x="186" y="322" width="28" height="10" rx="3" fill="#000"/>',
   box: { x1: 0, x2: 250 }
 };
 const p1 = P_CAM;
-const bx = p1.box.x2 + 6;
+const bx = p1.box.x2 + 14;
 const b = artGlyph(B_ART, bx);
 const p2 = artGlyph(P_ART, b.box.x2 + 14);
 const width = p2.box.x2 - p1.box.x1;

@@ -12,7 +12,7 @@ GitHub Pages only serves static files, so the Pages build bundles the real serve
 
 ## Brand
 
-Logo (the PBP monogram: a camera-shaped first P, a woman's profile in the rose-gold B, a face inside the last P), colours, typography and voice are documented on the in-app **/brand** page. `node scripts/make-logo.mjs` regenerates the logo SVGs; logo files, app icons and the social share image are in `web/public/brand/`. Fonts (Alexandria for headlines and interface, IBM Plex Sans Arabic for body text; both cover Arabic) are self-hosted via Fontsource. Demo portfolio photos are hotlinked from [Pexels](https://www.pexels.com/license/) (`server/photos.js`); a branded placeholder is shown if one fails to load.
+Logo (the PBP monogram: a camera-shaped first P, a woman's face framed by hair in the rose-gold B, a face inside the last P), colours, typography and voice are documented on the in-app **/brand** page. `node scripts/make-logo.mjs` regenerates the logo SVGs; logo files, app icons and the social share image are in `web/public/brand/`. Fonts (Alexandria for headlines and interface, IBM Plex Sans Arabic for body text; both cover Arabic) are self-hosted via Fontsource. Demo portfolio photos are hotlinked from [Pexels](https://www.pexels.com/license/) (`server/photos.js`); a branded placeholder is shown if one fails to load.
 
 ## Run it
 
