@@ -29,53 +29,35 @@ function glyph(ch, x) {
   const p = serif.getPath(ch, x, BASE, SIZE);
   return { d: p.toPathData(2), box: p.getBoundingBox() };
 }
-// The B is the supplied "woman in profile" B artwork, traced to a vector path
-// (scripts/brand/b-face.path, 1380 x 1746 units with a 36-unit margin) and scaled to cap height.
-const B_ART = { d: fs.readFileSync(new URL('./brand/b-face.path', import.meta.url), 'utf8').trim(), w: 1380, h: 1746, m: 36 };
-function faceB(x) {
-  const k = (BASE - 310) / (B_ART.h - 2 * B_ART.m); // match the P's cap height (y 310 to the baseline)
-  const tx = x - B_ART.m * k, ty = 310 - B_ART.m * k;
-  const x2 = x + (B_ART.w - 2 * B_ART.m) * k;
-  return { transform: `translate(${X(tx)} ${X(ty)}) scale(${k.toFixed(5)})`, d: B_ART.d, box: { x1: x, x2 } };
+// The B ("woman in profile") and the second P (face inside the bowl) are supplied artwork, traced
+// to vector paths in scripts/brand/ (with a 36-unit margin) and scaled to the first P's cap height.
+const art = (file, w, h) => ({ d: fs.readFileSync(new URL(`./brand/${file}`, import.meta.url), 'utf8').trim(), w, h, m: 36 });
+const B_ART = art('b-face.path', 1380, 1746);
+const P_ART = art('p-face.path', 1440, 2316);
+function artGlyph(a, x) {
+  const k = (BASE - 310) / (a.h - 2 * a.m); // cap height: y 310 to the baseline
+  const tx = x - a.m * k, ty = 310 - a.m * k;
+  return { transform: `translate(${X(tx)} ${X(ty)}) scale(${k.toFixed(5)})`, d: a.d, box: { x1: x, x2: x + (a.w - 2 * a.m) * k } };
 }
-const p1 = glyph('P', 0);
+// The first P is a camera: its bowl is the camera body, with a lens ring and a viewfinder on top.
+const P_CAM = {
+  body: 'M0 640 L0 430 A100 100 0 0 1 100 330 L160 330 A90 90 0 0 1 250 420 L250 445 A90 90 0 0 1 160 535 L72 535 L72 632 A8 8 0 0 1 64 640 Z M176 312 L222 312 A7 7 0 0 1 229 319 L229 345 L169 345 L169 319 A7 7 0 0 1 176 312 Z',
+  holes: '<circle cx="170" cy="434" r="58" fill="#000"/><circle cx="170" cy="434" r="42" fill="#fff"/><rect x="186" y="320" width="28" height="10" rx="3" fill="#000"/>',
+  box: { x1: 0, x2: 250 }
+};
+const p1 = P_CAM;
 const bx = p1.box.x2 + 6;
-const b = faceB(bx);
-const p2 = glyph('P', b.box.x2 + 2);
+const b = artGlyph(B_ART, bx);
+const p2 = artGlyph(P_ART, b.box.x2 + 14);
 const width = p2.box.x2 - p1.box.x1;
 const shift = 500 - (p1.box.x1 + width / 2); // centre the monogram on x = 500
 
 const sx = shift; // letters are drawn at x + shift
+const MARK_VIEW = `${X(500 - width / 2 - 14)} 296 ${X(width + 28)} 358`;
+console.log('mark viewBox', MARK_VIEW);
 
-// Camera sitting on the first P's stem, with a gold-rimmed lens.
-const cam = (ink, cut) => `<g transform="translate(227 500) scale(.8) translate(-227 -500)">
-<g stroke="${cut}" stroke-width="9" paint-order="stroke" stroke-linejoin="round">
-  <path fill="${ink}" d="M108 440 h38 l6 -12 h28 l6 12 h22 l18 -30 h84 l18 30 h14 a22 22 0 0 1 22 22 v84 a22 22 0 0 1 -22 22 h-212 a22 22 0 0 1 -22 -22 v-84 a22 22 0 0 1 22 -22 z"/>
-</g>
-<circle cx="227" cy="500" r="56" fill="${cut}"/>
-<circle cx="227" cy="500" r="50" fill="none" stroke="url(#pbp-gold)" stroke-width="9"/>
-<circle cx="227" cy="500" r="38" fill="${C.ink}"/>
-<circle cx="227" cy="500" r="25" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="3"/>
-<circle cx="213" cy="486" r="7" fill="#fff" fill-opacity=".85"/>
-<rect x="120" y="456" width="26" height="10" rx="3" fill="url(#pbp-gold)"/></g>`;
-
-// Makeup brush leaning across the second P.
-const brush = (ink, cut) => `
-<g transform="translate(${X(sx + 650)} 612) rotate(24) scale(.8)">
-  <g stroke="${cut}" stroke-width="8" paint-order="stroke" stroke-linejoin="round">
-    <path fill="${ink}" d="M-7 0 C-8 -60 -9 -110 -10 -152 L10 -152 C9 -110 8 -60 7 0 C6 8 -6 8 -7 0 Z"/>
-    <path fill="url(#pbp-gold)" d="M-12 -152 L12 -152 L13 -200 L-13 -200 Z"/>
-    <path fill="url(#pbp-bristle)" d="M-13 -200 C-30 -222 -44 -248 -40 -276 C-34 -300 -12 -312 0 -312 C12 -312 34 -300 40 -276 C44 -248 30 -222 13 -200 Z"/>
-  </g>
-  <g stroke="#C9877B" stroke-opacity=".55" stroke-width="1.6" fill="none">
-    <path d="M0 -204 L0 -306"/><path d="M-6 -204 L-22 -298"/><path d="M6 -204 L22 -298"/><path d="M-10 -206 L-34 -284"/><path d="M10 -206 L34 -284"/>
-  </g>
-  <path d="M-12 -170 h24" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
-</g>`;
-
-const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><path d="${p1.d}" fill="${ink}"/><path d="${b.d}" transform="${b.transform}" fill="url(#pbp-rose)" fill-rule="evenodd"/><path d="${p2.d}" fill="${ink}"/></g>`;
-// `cut` is the background colour: it separates the camera, face and brush from the letters.
-const monogram = (ink, cut = '#FFFFFF') => letters(ink) + cam(ink, cut) + brush(ink, cut);
+const letters = (ink) => `<g transform="translate(${X(sx)} 0)"><mask id="pbp-pcam" maskUnits="userSpaceOnUse" x="-20" y="290" width="300" height="370"><rect x="-20" y="290" width="300" height="370" fill="#fff"/>${p1.holes}</mask><path d="${p1.body}" fill="${ink}" mask="url(#pbp-pcam)"/><path d="${b.d}" transform="${b.transform}" fill="url(#pbp-rose)" fill-rule="evenodd"/><path d="${p2.d}" transform="${p2.transform}" fill="${ink}" fill-rule="evenodd"/></g>`;
+const monogram = (ink) => letters(ink);
 
 // Tracked capitals for the wordmark: PICS (ink) BEAUTY (rose) PROS (ink).
 function wordmark(ink, y, size = 50, track = 0.36) {
@@ -114,9 +96,9 @@ fs.writeFileSync(OUT + 'logo-badge.svg', badge(C.ink, C.ink, ''));
 fs.writeFileSync(OUT + 'logo-badge-on-dark.svg', badge(C.ink, C.ink, `<circle cx="500" cy="500" r="438" fill="#fff"/>`));
 
 // 2. Monogram only, cropped tight, for the site header.
-const mono = svg('108 290 790 370', monogram(C.ink));
+const mono = svg(MARK_VIEW, monogram(C.ink));
 fs.writeFileSync(OUT + 'pbp-mark.svg', mono);
-fs.writeFileSync(OUT + 'pbp-mark-light.svg', svg('108 290 790 370', monogram('#FFFFFF', C.ink)));
+fs.writeFileSync(OUT + 'pbp-mark-light.svg', svg(MARK_VIEW, monogram('#FFFFFF')));
 
 // 3. App icon / favicon: monogram on a white tile with the gold ring.
 fs.writeFileSync(OUT + 'mark-app.svg', svg('0 0 1000 1000', `<rect width="1000" height="1000" rx="220" fill="#fff"/>
