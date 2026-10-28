@@ -1,0 +1,1 @@
+const c=n=>"/"+n.split("/").filter(t=>t&&t!==".").join("/"),o=(...n)=>c(n.join("/")),a=(...n)=>o(...n),e=n=>n.split("/").pop(),i=n=>{const t=e(n),s=t.lastIndexOf(".");return s>0?t.slice(s):""},l={join:o,resolve:a,basename:e,extname:i};export{o as j,l as p};
