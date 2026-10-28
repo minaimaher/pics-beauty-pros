@@ -1,0 +1,29 @@
+name: Check custom domain
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pages: read
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: DNS records
+        run: |
+          for t in NS A AAAA CNAME; do echo "== picsbeautypros.com $t"; dig +short picsbeautypros.com $t @8.8.8.8; done
+          echo "== www.picsbeautypros.com CNAME"; dig +short www.picsbeautypros.com CNAME @8.8.8.8
+          echo "== www.picsbeautypros.com A"; dig +short www.picsbeautypros.com A @8.8.8.8
+      - name: HTTP
+        run: |
+          for u in http://picsbeautypros.com https://picsbeautypros.com http://www.picsbeautypros.com https://minaimaher.github.io/pics-beauty-pros/; do
+            echo "== $u"; curl -sS -o /dev/null -w '%{http_code} -> %{redirect_url}\n' --max-time 20 "$u" || true
+          done
+      - name: GitHub Pages settings
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/pages || true
+          gh api repos/${{ github.repository }}/pages/health || true
